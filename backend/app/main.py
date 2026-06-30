@@ -18,7 +18,7 @@ def create_app() -> FastAPI:
 
     if settings.use_real_providers:
         if not settings.groq_multimodal_model:
-            raise RuntimeError("BE_MY_EYE_GROQ_MULTIMODAL_MODEL is required when real providers are enabled.")
+            raise RuntimeError("GROQ_MULTIMODAL_MODEL is required when real providers are enabled.")
         service = ConversationService(
             asr=GroqASRProvider(model=settings.groq_asr_model, language=settings.groq_asr_language),
             vision=GroqVisionProvider(model=settings.groq_multimodal_model, prompts=prompts),

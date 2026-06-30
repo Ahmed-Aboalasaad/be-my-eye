@@ -2,20 +2,27 @@ import base64
 
 from fastapi.testclient import TestClient
 
-from app.main import app
+from app.main import create_app
 
 
-client = TestClient(app)
+def make_client() -> TestClient:
+    return TestClient(create_app())
 
 
 def test_health_endpoint():
-    response = client.get("/health")
+    import os
+
+    os.environ["USE_REAL_PROVIDERS"] = "false"
+    response = make_client().get("/health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
 
 def test_conversation_endpoint_returns_response():
+    import os
+
+    os.environ["USE_REAL_PROVIDERS"] = "false"
     payload = {
         "session_id": "session-1",
         "image_base64": base64.b64encode(b"image-bytes").decode("ascii"),
@@ -23,7 +30,7 @@ def test_conversation_endpoint_returns_response():
         "debug": True,
     }
 
-    response = client.post("/conversation", json=payload)
+    response = make_client().post("/conversation", json=payload)
 
     assert response.status_code == 200
     body = response.json()
@@ -33,14 +40,16 @@ def test_conversation_endpoint_returns_response():
 
 
 def test_conversation_endpoint_rejects_invalid_base64():
+    import os
+
+    os.environ["USE_REAL_PROVIDERS"] = "false"
     payload = {
         "session_id": "session-1",
         "image_base64": "not-base64",
         "audio_base64": "still-not-base64",
     }
 
-    response = client.post("/conversation", json=payload)
+    response = make_client().post("/conversation", json=payload)
 
     assert response.status_code == 400
     assert response.json()["detail"]["code"] == "invalid_request"
-
