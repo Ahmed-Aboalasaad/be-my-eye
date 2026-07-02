@@ -129,7 +129,8 @@ ConversationState  ── HTTP ──▶   ConversationService.handle()
   Confirm `app/core/config.py` reads all from `os.environ`.
 - **Sessions → client-carried history:** add optional `history: list[ConversationTurn]` to
   `ConversationRequest`. If provided, the service uses it; otherwise it falls back to the in-memory
-  store. Stateless-friendly, zero infra, backward compatible. Mobile keeps the last N turns.
+  store. Stateless-friendly, zero infra, backward compatible. Mobile keeps the last **5 turns**
+  (bounded to protect payload size) and sends them with each request.
 - **Payload size:** serverless body limit ≈ 4.5 MB; base64 inflates ~33%. Mobile **compresses
   images** (max ~1024px, JPEG ~70%) and keeps audio short. Documented as a hard client requirement.
 - **CORS:** add CORS middleware (needed for web/dev testing; harmless for native).
