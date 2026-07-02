@@ -18,9 +18,10 @@ The first version should prove the end-to-end user experience before any advance
 6. Backend foundation has been scaffolded.
 7. Phase 1 first vertical slice exists in the backend with fake providers and tests.
 8. Real Groq-backed Vision, OCR, Grounding, LLM, ASR, and TTS adapters have been added.
-9. Flutter mobile shell and backend client scaffolding have started.
-10. Mobile conversation state now owns capture and playback hooks.
+9. Flutter mobile app is fully implemented: models, backend client, media capture/compression, audio playback, conversation state, and an accessible hold-to-ask screen (16/16 tests passing, `flutter analyze` clean).
+10. Mobile UI was designed via Google Stitch (idle/listening/thinking/answer states) and applied to the app; verified running live on an iOS Simulator (iPhone 16e) and confirmed rendering correctly.
 11. Backend deployed to Vercel at https://backend-mu-azure-ghm6imsjg1.vercel.app with real Groq providers. Full pipeline verified live end-to-end, including TTS synthesis.
+12. Vision-task routing (currency, color, product, scene) and object-finder grounding are wired into ConversationService, with Arabic keyword support (this app's ASR defaults to Arabic) verified live end-to-end via real Groq TTS/ASR round-trips.
 
 ### Not Done Yet
 
@@ -172,8 +173,8 @@ Dependencies:
 | Playground experiments | Done | VLM and depth prototypes exist for reference only. |
 | Backend foundation | Done | Scaffold, shared schemas, providers, service, API, and tests are in place. Deployed to Vercel at https://backend-mu-azure-ghm6imsjg1.vercel.app with real Groq providers; full pipeline (ASR → routing → Vision → LLM → TTS) verified live end-to-end. |
 | API and orchestration | Done | `/conversation` works with deterministic fake providers. |
-| Provider adapters | Done | Groq-backed Vision, OCR, Grounding, LLM, ASR, and TTS adapters are in code; real mode is config-driven. |
-| Mobile app | In progress | Flutter shell, backend client, and capture/playback wiring are scaffolded. |
+| Provider adapters | Done | Groq-backed Vision, OCR, Grounding, LLM, ASR, and TTS adapters are in code and wired into ConversationService; real mode is config-driven. Vision-task routing (currency/color/product/scene) and grounding support both English and Arabic keywords, verified live. |
+| Mobile app | Done | Full Flutter app implemented (models, backend client, media capture/compression, audio playback, conversation state, accessible hold-to-ask screen), Stitch-designed UI applied, 16/16 tests passing, verified running live on iOS Simulator. |
 | Tests | Done | The Phase 1 slice has pytest coverage and passes. |
 
 ## Component Dependencies
