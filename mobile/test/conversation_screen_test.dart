@@ -49,8 +49,7 @@ void main() {
     );
 
     expect(find.text('Hold to ask'), findsOneWidget);
-    // Semantics label is set in code but not detected by test framework
-    // expect(find.bySemanticsLabel('Hold to ask a question'), findsOneWidget);
+    expect(find.bySemanticsLabel('Hold to ask a question'), findsOneWidget);
   });
 
   testWidgets('shows the response text once a response arrives',

@@ -29,12 +29,13 @@ class ConversationScreen extends StatelessWidget {
       semanticsLabel = 'Hold to ask a question';
     }
 
-    return Semantics(
-      label: semanticsLabel,
-      liveRegion: true,
-      button: true,
-      child: Scaffold(
-        body: GestureDetector(
+    return Scaffold(
+      body: Semantics(
+        label: semanticsLabel,
+        liveRegion: true,
+        button: true,
+        excludeSemantics: true,
+        child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onLongPressStart: (_) async {
             await state.captureImage();
