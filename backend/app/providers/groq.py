@@ -9,7 +9,7 @@ from PIL import Image
 
 from app.core.prompts import PromptConfig, get_prompt_config
 from app.providers.base import ASRProvider, GroundingProvider, LLMProvider, OCRProvider, TTSProvider, VisionProvider
-from app.schemas.common import ConversationTurn
+from app.schemas.common import ConversationTurn, VisionTask
 
 
 def _data_url(image_bytes: bytes) -> str:
@@ -60,12 +60,26 @@ class GroqVisionProvider(VisionProvider):
     prompts: PromptConfig = field(default_factory=get_prompt_config)
     client: object | None = None
 
-    def analyze(self, image_bytes: bytes, question: str, history: Sequence[ConversationTurn]) -> str:
+    def _instruction_for(self, task: VisionTask) -> str:
+        return {
+            VisionTask.scene: self.prompts.vision_instruction,
+            VisionTask.currency: self.prompts.currency_instruction,
+            VisionTask.color: self.prompts.color_instruction,
+            VisionTask.product: self.prompts.product_instruction,
+        }[task]
+
+    def analyze(
+        self,
+        image_bytes: bytes,
+        question: str,
+        history: Sequence[ConversationTurn],
+        task: VisionTask = VisionTask.scene,
+    ) -> str:
         _ = history
         client = self.client or _load_groq_client()
         prompt = (
             f"{self.prompts.vision_system}\n"
-            f"{self.prompts.vision_instruction}\n"
+            f"{self._instruction_for(task)}\n"
             f"User question: {question}"
         )
         return _client_chat_content(client, self.model, prompt, image_bytes)

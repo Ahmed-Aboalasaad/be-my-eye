@@ -4,7 +4,7 @@ from PIL import Image
 
 from app.core.prompts import PromptConfig
 from app.providers.groq import GroqASRProvider, GroqGroundingProvider, GroqLLMProvider, GroqOCRProvider, GroqTTSProvider, GroqVisionProvider
-from app.schemas.common import ConversationTurn
+from app.schemas.common import ConversationTurn, VisionTask
 
 
 class FakeChatCompletions:
@@ -136,3 +136,27 @@ def test_groq_tts_provider_returns_bytes():
 
     assert provider.synthesize_speech("hello") == b"wav-bytes"
     assert client.audio.speech.calls[0]["voice"] == "abdullah"
+
+
+def test_groq_vision_provider_selects_currency_instruction():
+    client = FakeGroqClient()
+    provider = GroqVisionProvider(model="qwen-model", prompts=PROMPTS, client=client)
+
+    provider.analyze(make_image_bytes(), "How much money is this?", [], task=VisionTask.currency)
+
+    prompt = client.chat.completions.calls[0]["messages"][0]["content"]
+    assert isinstance(prompt, list)
+    prompt_text = " ".join(part.get("text", "") for part in prompt if isinstance(part, dict))
+    assert "currency instruction" in prompt_text
+    assert "vision instruction" not in prompt_text
+
+
+def test_groq_vision_provider_defaults_to_scene_instruction():
+    client = FakeGroqClient()
+    provider = GroqVisionProvider(model="qwen-model", prompts=PROMPTS, client=client)
+
+    provider.analyze(make_image_bytes(), "What is this?", [])
+
+    prompt = client.chat.completions.calls[0]["messages"][0]["content"]
+    prompt_text = " ".join(part.get("text", "") for part in prompt if isinstance(part, dict))
+    assert "vision instruction" in prompt_text
