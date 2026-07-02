@@ -27,12 +27,10 @@ venv/
 env/
 
 # Env files (also checked here since backend/ is the Vercel project root)
-.env
-.env.local
+.env*
 
 # Logs
 *.log
 
 # Vercel CLI local state
 .vercel
-.env*
