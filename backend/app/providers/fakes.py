@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Sequence
 
-from app.providers.base import ASRProvider, LLMProvider, OCRProvider, TTSProvider, VisionProvider
+from app.providers.base import ASRProvider, GroundingProvider, LLMProvider, OCRProvider, TTSProvider, VisionProvider
 from app.schemas.common import ConversationTurn, VisionTask
 
 
@@ -22,6 +22,12 @@ class FakeVisionProvider(VisionProvider):
     ) -> str:
         _ = (image_bytes, question, history, task)
         return "a desk with a laptop and a mug"
+
+
+class FakeGroundingProvider(GroundingProvider):
+    def locate_object(self, image_bytes: bytes, object_query: str, history: Sequence[ConversationTurn]) -> str:
+        _ = (image_bytes, object_query, history)
+        return "on the kitchen counter"
 
 
 class FakeOCRProvider(OCRProvider):

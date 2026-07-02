@@ -24,6 +24,8 @@ class ConversationDebug(BaseModel):
     selected_providers: list[str]
     vision_summary: str | None = None
     ocr_text: str | None = None
+    vision_task: str | None = None
+    grounding_result: str | None = None
 
 
 class ConversationResponse(BaseModel):
