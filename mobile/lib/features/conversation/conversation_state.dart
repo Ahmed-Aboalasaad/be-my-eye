@@ -38,16 +38,32 @@ class ConversationState extends ChangeNotifier {
   }
 
   Future<void> captureImage() async {
-    _capturedImageBase64 = await _mediaCaptureService.captureImageBase64();
+    try {
+      _capturedImageBase64 = await _mediaCaptureService.captureImageBase64();
+      _lastError = null;
+    } catch (error) {
+      _lastError = 'Could not access the camera: $error';
+    }
     notifyListeners();
   }
 
   Future<void> startAudioRecording() async {
-    await _mediaCaptureService.startAudioRecording();
+    try {
+      await _mediaCaptureService.startAudioRecording();
+      _lastError = null;
+    } catch (error) {
+      _lastError = 'Could not start recording: $error';
+    }
+    notifyListeners();
   }
 
   Future<void> stopAudioRecording() async {
-    _capturedAudioBase64 = await _mediaCaptureService.stopAudioRecording();
+    try {
+      _capturedAudioBase64 = await _mediaCaptureService.stopAudioRecording();
+      _lastError = null;
+    } catch (error) {
+      _lastError = 'Could not finish recording: $error';
+    }
     notifyListeners();
   }
 
@@ -56,7 +72,7 @@ class ConversationState extends ChangeNotifier {
     final audioBase64 = _capturedAudioBase64;
 
     if (imageBase64 == null || audioBase64 == null) {
-      _lastError = 'Capture an image and audio before sending.';
+      _lastError ??= 'Capture an image and audio before sending.';
       notifyListeners();
       return;
     }

@@ -54,6 +54,21 @@ class FakeAudioPlaybackService implements AudioPlaybackService {
   }
 }
 
+class ThrowingMediaCaptureService implements MediaCaptureService {
+  @override
+  Future<String> captureImageBase64() async {
+    throw StateError('No cameras available.');
+  }
+
+  @override
+  Future<void> startAudioRecording() async {}
+
+  @override
+  Future<String> stopAudioRecording() async {
+    throw StateError('Audio recording did not produce a file.');
+  }
+}
+
 void main() {
   test('ConversationState rejects send attempts without captures', () async {
     final backendClient = FakeBackendClient();
@@ -126,5 +141,31 @@ void main() {
     await state.playLastResponse();
 
     expect(audioPlaybackService.playedAudioBase64, 'response-audio');
+  });
+
+  test('ConversationState surfaces a specific error when camera capture fails', () async {
+    final backendClient = FakeBackendClient();
+    final state = ConversationState(
+      backendClient: backendClient,
+      mediaCaptureService: ThrowingMediaCaptureService(),
+      audioPlaybackService: FakeAudioPlaybackService(),
+    );
+
+    await state.captureImage();
+
+    expect(state.lastError, contains('Could not access the camera'));
+  });
+
+  test('ConversationState surfaces a specific error when stopping the recording fails', () async {
+    final backendClient = FakeBackendClient();
+    final state = ConversationState(
+      backendClient: backendClient,
+      mediaCaptureService: ThrowingMediaCaptureService(),
+      audioPlaybackService: FakeAudioPlaybackService(),
+    );
+
+    await state.stopAudioRecording();
+
+    expect(state.lastError, contains('Could not finish recording'));
   });
 }

@@ -12,6 +12,9 @@ class PromptConfig:
     llm_system: str
     llm_answer_style: str
     grounding_system: str
+    currency_instruction: str
+    color_instruction: str
+    product_instruction: str
 
 
 def get_prompt_config() -> PromptConfig:
@@ -40,5 +43,16 @@ def get_prompt_config() -> PromptConfig:
             "BE_MY_EYE_GROUNDING_SYSTEM_PROMPT",
             "Identify where a user-referenced object is likely located in the image.",
         ),
+        currency_instruction=os.getenv(
+            "BE_MY_EYE_CURRENCY_INSTRUCTION_PROMPT",
+            "Identify the currency and denomination shown in the image. State the amount plainly. Express uncertainty if the note or coin is unclear or partially visible.",
+        ),
+        color_instruction=os.getenv(
+            "BE_MY_EYE_COLOR_INSTRUCTION_PROMPT",
+            "Identify the dominant color of the specific item the user is asking about. Name the color plainly using common color names.",
+        ),
+        product_instruction=os.getenv(
+            "BE_MY_EYE_PRODUCT_INSTRUCTION_PROMPT",
+            "Identify the product the user is holding, including brand and type if visible on the packaging or label. Express uncertainty if the label is not clearly readable.",
+        ),
     )
-

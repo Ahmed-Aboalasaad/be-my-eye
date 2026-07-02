@@ -67,6 +67,9 @@ PROMPTS = PromptConfig(
     llm_system="llm system",
     llm_answer_style="respond briefly",
     grounding_system="grounding system",
+    currency_instruction="currency instruction",
+    color_instruction="color instruction",
+    product_instruction="product instruction",
 )
 
 

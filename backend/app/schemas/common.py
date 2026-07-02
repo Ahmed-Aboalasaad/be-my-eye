@@ -1,8 +1,16 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from enum import Enum
 
 from pydantic import BaseModel, Field
+
+
+class VisionTask(str, Enum):
+    scene = "scene"
+    currency = "currency"
+    color = "color"
+    product = "product"
 
 
 class ConversationTurn(BaseModel):
