@@ -76,6 +76,40 @@ def test_conversation_service_calls_grounding_when_query_present():
 
     assert response.debug.grounding_result == "on the kitchen counter"
     assert response.debug.selected_providers == ["vision", "grounding"]
+    assert response.text == "It's on the kitchen counter."
+
+
+def test_conversation_service_passes_grounding_result_to_llm():
+    class SpyLLMProvider(FakeLLMProvider):
+        def __init__(self) -> None:
+            self.received_grounding_result: str | None = "not-called"
+
+        def generate_response(self, user_message, vision_summary, ocr_text, history, grounding_result=None):
+            self.received_grounding_result = grounding_result
+            return super().generate_response(
+                user_message, vision_summary, ocr_text, history, grounding_result=grounding_result
+            )
+
+    spy_llm = SpyLLMProvider()
+    service = ConversationService(
+        asr=FakeASRProvider(),
+        vision=FakeVisionProvider(),
+        ocr=FakeOCRProvider(),
+        llm=spy_llm,
+        tts=FakeTTSProvider(),
+        grounding=FakeGroundingProvider(),
+        session_store=InMemorySessionStore(),
+        router=IntentRouter(),
+    )
+    request = ConversationRequest(
+        session_id="session-1",
+        image_base64=base64.b64encode(b"image-bytes").decode("ascii"),
+        audio_base64=base64.b64encode(b"Where are my keys?").decode("ascii"),
+    )
+
+    service.handle(request)
+
+    assert spy_llm.received_grounding_result == "on the kitchen counter"
 
 
 def test_conversation_service_prefers_request_supplied_history():

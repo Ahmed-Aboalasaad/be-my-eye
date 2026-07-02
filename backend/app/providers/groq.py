@@ -126,6 +126,7 @@ class GroqLLMProvider(LLMProvider):
         vision_summary: str | None,
         ocr_text: str | None,
         history: Sequence[ConversationTurn],
+        grounding_result: str | None = None,
     ) -> str:
         client = self.client or _load_groq_client()
         history_lines = [
@@ -140,6 +141,8 @@ class GroqLLMProvider(LLMProvider):
             prompt_parts.append(f"Scene summary: {vision_summary}")
         if ocr_text:
             prompt_parts.append(f"OCR text: {ocr_text}")
+        if grounding_result:
+            prompt_parts.append(f"Object location: {grounding_result}")
         if history_lines:
             prompt_parts.append("Recent history:\n" + "\n".join(history_lines))
         prompt_parts.append(self.prompts.llm_answer_style)

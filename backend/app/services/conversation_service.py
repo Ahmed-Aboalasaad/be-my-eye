@@ -49,7 +49,9 @@ class ConversationService:
         if grounding_result is not None:
             selected_providers.append("grounding")
 
-        response_text = self.llm.generate_response(transcript, vision_summary, ocr_text, history)
+        response_text = self.llm.generate_response(
+            transcript, vision_summary, ocr_text, history, grounding_result=grounding_result
+        )
         speech_bytes = self.tts.synthesize_speech(response_text)
 
         self.session_store.append_turn(

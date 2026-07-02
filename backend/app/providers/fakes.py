@@ -43,8 +43,11 @@ class FakeLLMProvider(LLMProvider):
         vision_summary: str | None,
         ocr_text: str | None,
         history: Sequence[ConversationTurn],
+        grounding_result: str | None = None,
     ) -> str:
         _ = history
+        if grounding_result:
+            return f"It's {grounding_result}."
         if ocr_text:
             return f"I can read the text: {ocr_text}."
         if vision_summary:

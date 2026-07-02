@@ -44,6 +44,7 @@ class LLMProvider(ABC):
         vision_summary: str | None,
         ocr_text: str | None,
         history: Sequence[ConversationTurn],
+        grounding_result: str | None = None,
     ) -> str:
         raise NotImplementedError
 
