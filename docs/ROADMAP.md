@@ -20,7 +20,7 @@ The first version should prove the end-to-end user experience before any advance
 8. Real Groq-backed Vision, OCR, Grounding, LLM, ASR, and TTS adapters have been added.
 9. Flutter mobile shell and backend client scaffolding have started.
 10. Mobile conversation state now owns capture and playback hooks.
-11. Backend deployed to Vercel at https://backend-mu-azure-ghm6imsjg1.vercel.app with real Groq providers (TTS synthesis pending one-time Groq model-terms acceptance).
+11. Backend deployed to Vercel at https://backend-mu-azure-ghm6imsjg1.vercel.app with real Groq providers. Full pipeline verified live end-to-end, including TTS synthesis.
 
 ### Not Done Yet
 
@@ -170,7 +170,7 @@ Dependencies:
 | --- | --- | --- |
 | Docs and architecture | Done | Vision, requirements, components, providers, API, and decisions are documented. |
 | Playground experiments | Done | VLM and depth prototypes exist for reference only. |
-| Backend foundation | Done | Scaffold, shared schemas, providers, service, API, and tests are in place. Deployed to Vercel at https://backend-mu-azure-ghm6imsjg1.vercel.app with real Groq providers; /conversation verified through ASR → routing → Vision → LLM. TTS synthesis pending one-time Groq model-terms acceptance. |
+| Backend foundation | Done | Scaffold, shared schemas, providers, service, API, and tests are in place. Deployed to Vercel at https://backend-mu-azure-ghm6imsjg1.vercel.app with real Groq providers; full pipeline (ASR → routing → Vision → LLM → TTS) verified live end-to-end. |
 | API and orchestration | Done | `/conversation` works with deterministic fake providers. |
 | Provider adapters | Done | Groq-backed Vision, OCR, Grounding, LLM, ASR, and TTS adapters are in code; real mode is config-driven. |
 | Mobile app | In progress | Flutter shell, backend client, and capture/playback wiring are scaffolded. |

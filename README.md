@@ -38,7 +38,7 @@ This is an active proof-of-concept. Be honest with yourself about what's real be
 | Backend (FastAPI) | **Working, tested, deployed** — live on Vercel with real Groq providers |
 | Backend test suite | **Green** — 32 passed, 1 skipped (real-mode smoke test is env-gated) |
 | Mobile app (Flutter) | **Not yet implemented** — `mobile/lib/` does not exist in this repo. Only `mobile/test/` and `mobile/pubspec.yaml` exist; see [Known Issue](#known-issue-mobilelib-was-never-committed) below |
-| TTS in production | **Partially verified** — `/conversation` works end-to-end through ASR → routing → Vision → LLM against real Groq APIs; the final TTS call is blocked on a one-time Groq account action (see [Troubleshooting](#troubleshooting)) |
+| `/conversation` end-to-end | **Fully verified live** — ASR → routing → Vision → LLM → TTS all confirmed working against real Groq APIs |
 | CI/CD | **Not yet set up** — deploys are manual via the Vercel CLI today |
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full phased plan and [`docs/superpowers/plans/`](docs/superpowers/plans/) for the detailed, task-by-task implementation plans driving this work.
