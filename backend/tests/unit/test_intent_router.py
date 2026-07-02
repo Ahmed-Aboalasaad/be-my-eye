@@ -65,3 +65,35 @@ def test_intent_router_priority_currency_over_color():
     decision = router.route("What color is this dollar bill?")
 
     assert decision.vision_task == VisionTask.currency
+
+
+def test_intent_router_selects_currency_task_in_arabic():
+    router = IntentRouter()
+
+    decision = router.route("كم سعر هذه العملة؟")
+
+    assert decision.vision_task == VisionTask.currency
+
+
+def test_intent_router_selects_color_task_in_arabic():
+    router = IntentRouter()
+
+    decision = router.route("ما لون هذا القميص؟")
+
+    assert decision.vision_task == VisionTask.color
+
+
+def test_intent_router_sets_grounding_query_in_arabic():
+    router = IntentRouter()
+
+    decision = router.route("وين مفاتيحي؟")
+
+    assert decision.grounding_query == "وين مفاتيحي؟"
+
+
+def test_intent_router_adds_ocr_for_arabic_text_requests():
+    router = IntentRouter()
+
+    decision = router.route("اقرأ هذا المستند من فضلك")
+
+    assert decision.use_ocr is True

@@ -13,6 +13,10 @@ class RoutingDecision:
 
 
 class IntentRouter:
+    # Keyword lists include Arabic variants because this app's ASR defaults
+    # to Arabic (GROQ_ASR_LANGUAGE=ar in app/core/config.py) -- English-only
+    # keywords would never match transcribed Arabic speech, silently
+    # defaulting every request to the scene task regardless of intent.
     OCR_KEYWORDS = (
         "read",
         "text",
@@ -22,6 +26,14 @@ class IntentRouter:
         "receipt",
         "menu",
         "page",
+        "اقرأ",
+        "نص",
+        "مستند",
+        "لافتة",
+        "ملصق",
+        "إيصال",
+        "قائمة",
+        "صفحة",
     )
     CURRENCY_KEYWORDS = (
         "money",
@@ -33,11 +45,23 @@ class IntentRouter:
         "denomination",
         "currency",
         "note",
+        "فلوس",
+        "نقود",
+        "كاش",
+        "عملة",
+        "ورقة نقدية",
+        "دولار",
+        "بكام",
+        "كام سعر",
+        "فئة",
     )
     COLOR_KEYWORDS = (
         "color",
         "colour",
         "shade",
+        "لون",
+        "لونه",
+        "درجة اللون",
     )
     PRODUCT_KEYWORDS = (
         "what am i holding",
@@ -45,12 +69,24 @@ class IntentRouter:
         "package",
         "label",
         "product",
+        "ايه اللي في ايدي",
+        "ماركة",
+        "عبوة",
+        "علبة",
+        "منتج",
     )
     GROUNDING_KEYWORDS = (
         "where",
         "find",
         "locate",
         "which direction",
+        "وين",
+        "أين",
+        "فين",
+        "دور على",
+        "ابحث عن",
+        "حدد موقع",
+        "في اي اتجاه",
     )
 
     def route(self, user_message: str) -> RoutingDecision:
