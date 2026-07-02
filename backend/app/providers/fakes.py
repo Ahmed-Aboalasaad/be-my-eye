@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Sequence
 
 from app.providers.base import ASRProvider, LLMProvider, OCRProvider, TTSProvider, VisionProvider
-from app.schemas.common import ConversationTurn
+from app.schemas.common import ConversationTurn, VisionTask
 
 
 class FakeASRProvider(ASRProvider):
@@ -13,8 +13,14 @@ class FakeASRProvider(ASRProvider):
 
 
 class FakeVisionProvider(VisionProvider):
-    def analyze(self, image_bytes: bytes, question: str, history: Sequence[ConversationTurn]) -> str:
-        _ = (image_bytes, question, history)
+    def analyze(
+        self,
+        image_bytes: bytes,
+        question: str,
+        history: Sequence[ConversationTurn],
+        task: VisionTask = VisionTask.scene,
+    ) -> str:
+        _ = (image_bytes, question, history, task)
         return "a desk with a laptop and a mug"
 
 

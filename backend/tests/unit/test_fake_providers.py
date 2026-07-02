@@ -1,4 +1,5 @@
 from app.providers.fakes import FakeASRProvider, FakeLLMProvider, FakeOCRProvider, FakeTTSProvider, FakeVisionProvider
+from app.schemas.common import VisionTask
 
 
 def test_fake_asr_uses_payload_text_when_available():
@@ -36,3 +37,8 @@ def test_fake_tts_returns_utf8_bytes():
 
     assert provider.synthesize_speech("Hello") == b"Hello"
 
+
+def test_fake_vision_accepts_task_parameter():
+    provider = FakeVisionProvider()
+
+    assert provider.analyze(b"image", "How much is this?", [], task=VisionTask.currency) == "a desk with a laptop and a mug"
