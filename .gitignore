@@ -12,3 +12,7 @@ Thumbs.db
 
 # Vercel CLI local state
 .vercel
+
+# Claude Code personal/local settings (may contain locally-approved
+# permission entries; never commit alongside secrets)
+.claude/settings.local.json
