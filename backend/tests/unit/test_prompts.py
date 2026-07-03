@@ -54,3 +54,36 @@ def test_prompt_config_reads_vision_task_overrides(monkeypatch):
     assert prompts.color_instruction == "color override"
     assert prompts.product_instruction == "product override"
 
+
+def test_prompt_config_includes_new_accessibility_task_instructions(monkeypatch):
+    monkeypatch.delenv("BE_MY_EYE_FOOD_INSTRUCTION_PROMPT", raising=False)
+    monkeypatch.delenv("BE_MY_EYE_PEOPLE_INSTRUCTION_PROMPT", raising=False)
+    monkeypatch.delenv("BE_MY_EYE_ENVIRONMENT_INSTRUCTION_PROMPT", raising=False)
+    monkeypatch.delenv("BE_MY_EYE_CLOTHING_INSTRUCTION_PROMPT", raising=False)
+    monkeypatch.delenv("BE_MY_EYE_LABEL_INSTRUCTION_PROMPT", raising=False)
+
+    prompts = get_prompt_config()
+
+    assert "dish" in prompts.food_instruction.lower()
+    assert "allerg" in prompts.food_instruction.lower()
+    assert "identify" not in prompts.people_instruction.lower()
+    assert "light" in prompts.environment_instruction.lower()
+    assert "match" in prompts.clothing_instruction.lower() or "stain" in prompts.clothing_instruction.lower()
+    assert "expir" in prompts.label_instruction.lower() or "medicine" in prompts.label_instruction.lower()
+
+
+def test_prompt_config_reads_new_accessibility_task_overrides(monkeypatch):
+    monkeypatch.setenv("BE_MY_EYE_FOOD_INSTRUCTION_PROMPT", "food override")
+    monkeypatch.setenv("BE_MY_EYE_PEOPLE_INSTRUCTION_PROMPT", "people override")
+    monkeypatch.setenv("BE_MY_EYE_ENVIRONMENT_INSTRUCTION_PROMPT", "environment override")
+    monkeypatch.setenv("BE_MY_EYE_CLOTHING_INSTRUCTION_PROMPT", "clothing override")
+    monkeypatch.setenv("BE_MY_EYE_LABEL_INSTRUCTION_PROMPT", "label override")
+
+    prompts = get_prompt_config()
+
+    assert prompts.food_instruction == "food override"
+    assert prompts.people_instruction == "people override"
+    assert prompts.environment_instruction == "environment override"
+    assert prompts.clothing_instruction == "clothing override"
+    assert prompts.label_instruction == "label override"
+
