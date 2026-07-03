@@ -75,6 +75,71 @@ class IntentRouter:
         "علبة",
         "منتج",
     )
+    FOOD_KEYWORDS = (
+        "eating",
+        "eat",
+        "food",
+        "dish",
+        "meal",
+        "plate",
+        "ingredient",
+        "اكل",
+        "أكل",
+        "طعام",
+        "طبق",
+        "وجبة",
+        "مكونات",
+    )
+    PEOPLE_KEYWORDS = (
+        "anyone",
+        "someone",
+        "person",
+        "people",
+        "standing in front",
+        "facing me",
+        "حد",
+        "شخص",
+        "ناس",
+        "واقف قدامي",
+        "بيبصلي",
+    )
+    ENVIRONMENT_KEYWORDS = (
+        "light on",
+        "light off",
+        "lights",
+        "dark",
+        "bright",
+        "stove",
+        "burner",
+        "نور",
+        "ضلمة",
+        "مضي",
+        "البوتاجاز",
+        "الفرن مشغول",
+    )
+    CLOTHING_KEYWORDS = (
+        "clothes match",
+        "match",
+        "clash",
+        "stain",
+        "outfit",
+        "هدوم",
+        "متناسقة",
+        "بقعة",
+        "لبس",
+    )
+    LABEL_KEYWORDS = (
+        "expired",
+        "expiry",
+        "expire",
+        "medicine",
+        "medication",
+        "pill",
+        "انتهت الصلاحية",
+        "صلاحية",
+        "دواء",
+        "علاج",
+    )
     GROUNDING_KEYWORDS = (
         "where",
         "find",
@@ -98,6 +163,16 @@ class IntentRouter:
             vision_task = VisionTask.color
         elif any(keyword in normalized for keyword in self.PRODUCT_KEYWORDS):
             vision_task = VisionTask.product
+        elif any(keyword in normalized for keyword in self.FOOD_KEYWORDS):
+            vision_task = VisionTask.food
+        elif any(keyword in normalized for keyword in self.PEOPLE_KEYWORDS):
+            vision_task = VisionTask.people
+        elif any(keyword in normalized for keyword in self.ENVIRONMENT_KEYWORDS):
+            vision_task = VisionTask.environment
+        elif any(keyword in normalized for keyword in self.CLOTHING_KEYWORDS):
+            vision_task = VisionTask.clothing
+        elif any(keyword in normalized for keyword in self.LABEL_KEYWORDS):
+            vision_task = VisionTask.label
         else:
             vision_task = VisionTask.scene
 
