@@ -6,6 +6,7 @@ import 'features/conversation/backend_client.dart';
 import 'features/conversation/conversation_screen.dart';
 import 'features/conversation/conversation_state.dart';
 import 'features/conversation/media_services.dart';
+import 'features/conversation/os_tts_fallback.dart';
 
 const String _backendUrl = String.fromEnvironment(
   'BACKEND_URL',
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
         backendClient: BackendClient(baseUrl: _backendUrl),
         mediaCaptureService: CameraMediaCaptureService(),
         audioPlaybackService: JustAudioPlaybackService(),
+        osTtsFallbackService: FlutterOsTtsFallbackService(),
       ),
       child: MaterialApp(
         title: 'Be My Eye',

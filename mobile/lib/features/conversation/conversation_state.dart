@@ -5,20 +5,24 @@ import 'backend_client.dart';
 import 'demo_capture.dart';
 import 'media_services.dart';
 import 'models.dart';
+import 'os_tts_fallback.dart';
 
 class ConversationState extends ChangeNotifier {
   ConversationState({
     required BackendClient backendClient,
     required MediaCaptureService mediaCaptureService,
     required AudioPlaybackService audioPlaybackService,
+    required OsTtsFallbackService osTtsFallbackService,
     this.debug = false,
   })  : _backendClient = backendClient,
         _mediaCaptureService = mediaCaptureService,
-        _audioPlaybackService = audioPlaybackService;
+        _audioPlaybackService = audioPlaybackService,
+        _osTtsFallbackService = osTtsFallbackService;
 
   final BackendClient _backendClient;
   final MediaCaptureService _mediaCaptureService;
   final AudioPlaybackService _audioPlaybackService;
+  final OsTtsFallbackService _osTtsFallbackService;
   final bool debug;
 
   String? _capturedImageBase64;
@@ -109,18 +113,23 @@ class ConversationState extends ChangeNotifier {
     if (response == null) {
       return;
     }
-    await _audioPlaybackService.playBase64Audio(response.audioBase64);
+    if (response.ttsFallbackRequired) {
+      await _osTtsFallbackService.speak(response.text);
+    } else {
+      await _audioPlaybackService.playBase64Audio(response.audioBase64);
+    }
   }
 
   /// Test-only helper: sets lastResponse directly, bypassing submit(), so
   /// widget tests can verify UI reacts to a completed response without
   /// needing a real or fake network round-trip.
   @visibleForTesting
-  void debugSetResponseForTest(String text) {
+  void debugSetResponseForTest(String text, {bool ttsFallbackRequired = false}) {
     _lastResponse = ConversationResponse(
       sessionId: 'test-session',
       text: text,
       audioBase64: 'test-audio',
+      ttsFallbackRequired: ttsFallbackRequired,
     );
     notifyListeners();
   }

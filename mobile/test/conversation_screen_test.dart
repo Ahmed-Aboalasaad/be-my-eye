@@ -8,6 +8,7 @@ import 'package:be_my_eye/features/conversation/conversation_screen.dart';
 import 'package:be_my_eye/features/conversation/conversation_state.dart';
 import 'package:be_my_eye/features/conversation/media_services.dart';
 import 'package:be_my_eye/features/conversation/models.dart';
+import 'package:be_my_eye/features/conversation/os_tts_fallback.dart';
 
 class _FakeBackendClient extends BackendClient {
   _FakeBackendClient() : super(baseUrl: 'http://localhost');
@@ -32,6 +33,11 @@ class _FakeAudioPlaybackService implements AudioPlaybackService {
   Future<void> playBase64Audio(String audioBase64) async {}
 }
 
+class _FakeOsTtsFallbackService implements OsTtsFallbackService {
+  @override
+  Future<void> speak(String text) async {}
+}
+
 void main() {
   testWidgets('shows the idle hold-to-ask state with a matching semantics label',
       (WidgetTester tester) async {
@@ -39,6 +45,7 @@ void main() {
       backendClient: _FakeBackendClient(),
       mediaCaptureService: _FakeMediaCaptureService(),
       audioPlaybackService: _FakeAudioPlaybackService(),
+      osTtsFallbackService: _FakeOsTtsFallbackService(),
     );
 
     await tester.pumpWidget(
@@ -58,6 +65,7 @@ void main() {
       backendClient: _FakeBackendClient(),
       mediaCaptureService: _FakeMediaCaptureService(),
       audioPlaybackService: _FakeAudioPlaybackService(),
+      osTtsFallbackService: _FakeOsTtsFallbackService(),
     );
     state.loadDemoCapture();
 

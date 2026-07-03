@@ -5,6 +5,7 @@ import 'package:be_my_eye/features/conversation/backend_client.dart';
 import 'package:be_my_eye/features/conversation/conversation_state.dart';
 import 'package:be_my_eye/features/conversation/media_services.dart';
 import 'package:be_my_eye/features/conversation/models.dart';
+import 'package:be_my_eye/features/conversation/os_tts_fallback.dart';
 
 class FakeBackendClient extends BackendClient {
   FakeBackendClient() : super(baseUrl: 'http://localhost');
@@ -54,6 +55,15 @@ class FakeAudioPlaybackService implements AudioPlaybackService {
   }
 }
 
+class FakeOsTtsFallbackService implements OsTtsFallbackService {
+  String? spokenText;
+
+  @override
+  Future<void> speak(String text) async {
+    spokenText = text;
+  }
+}
+
 class ThrowingMediaCaptureService implements MediaCaptureService {
   @override
   Future<String> captureImageBase64() async {
@@ -91,6 +101,7 @@ void main() {
       backendClient: backendClient,
       mediaCaptureService: FakeMediaCaptureService(),
       audioPlaybackService: FakeAudioPlaybackService(),
+      osTtsFallbackService: FakeOsTtsFallbackService(),
     );
 
     await state.submit(sessionId: 'session-empty');
@@ -107,6 +118,7 @@ void main() {
       backendClient: backendClient,
       mediaCaptureService: mediaCaptureService,
       audioPlaybackService: audioPlaybackService,
+      osTtsFallbackService: FakeOsTtsFallbackService(),
       debug: true,
     );
 
@@ -127,6 +139,7 @@ void main() {
       backendClient: backendClient,
       mediaCaptureService: mediaCaptureService,
       audioPlaybackService: audioPlaybackService,
+      osTtsFallbackService: FakeOsTtsFallbackService(),
     );
 
     await state.captureImage();
@@ -149,6 +162,7 @@ void main() {
       backendClient: backendClient,
       mediaCaptureService: mediaCaptureService,
       audioPlaybackService: audioPlaybackService,
+      osTtsFallbackService: FakeOsTtsFallbackService(),
     );
 
     state.loadDemoCapture();
@@ -164,6 +178,7 @@ void main() {
       backendClient: backendClient,
       mediaCaptureService: ThrowingMediaCaptureService(),
       audioPlaybackService: FakeAudioPlaybackService(),
+      osTtsFallbackService: FakeOsTtsFallbackService(),
     );
 
     await state.captureImage();
@@ -177,6 +192,7 @@ void main() {
       backendClient: backendClient,
       mediaCaptureService: ThrowingMediaCaptureService(),
       audioPlaybackService: FakeAudioPlaybackService(),
+      osTtsFallbackService: FakeOsTtsFallbackService(),
     );
 
     await state.stopAudioRecording();
@@ -190,6 +206,7 @@ void main() {
       backendClient: backendClient,
       mediaCaptureService: CameraFailsButMicWorksMediaCaptureService(),
       audioPlaybackService: FakeAudioPlaybackService(),
+      osTtsFallbackService: FakeOsTtsFallbackService(),
     );
 
     await state.captureImage();
@@ -207,6 +224,7 @@ void main() {
       backendClient: backendClient,
       mediaCaptureService: mediaCaptureService,
       audioPlaybackService: audioPlaybackService,
+      osTtsFallbackService: FakeOsTtsFallbackService(),
     );
 
     state.loadDemoCapture();
@@ -216,5 +234,23 @@ void main() {
     await state.captureImage();
 
     expect(state.lastResponse, isNull);
+  });
+
+  test('ConversationState speaks locally when tts_fallback_required is true', () async {
+    final backendClient = FakeBackendClient();
+    final audioPlaybackService = FakeAudioPlaybackService();
+    final osTtsFallbackService = FakeOsTtsFallbackService();
+    final state = ConversationState(
+      backendClient: backendClient,
+      mediaCaptureService: FakeMediaCaptureService(),
+      audioPlaybackService: audioPlaybackService,
+      osTtsFallbackService: osTtsFallbackService,
+    );
+
+    state.debugSetResponseForTest('the answer', ttsFallbackRequired: true);
+    await state.playLastResponse();
+
+    expect(osTtsFallbackService.spokenText, 'the answer');
+    expect(audioPlaybackService.playedAudioBase64, isNull);
   });
 }
