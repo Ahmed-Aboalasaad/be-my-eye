@@ -64,3 +64,15 @@ def test_fake_product_lookup_returns_none_for_unknown_barcode():
     result = provider.lookup_by_barcode("0000000000000")
 
     assert result is None
+
+
+def test_fake_currency_detection_returns_confident_result():
+    from app.providers.fakes import FakeCurrencyDetectionProvider
+
+    provider = FakeCurrencyDetectionProvider()
+
+    result = provider.detect_currency(b"fake-image-bytes")
+
+    assert result is not None
+    assert result.denomination
+    assert result.confidence >= 0.6

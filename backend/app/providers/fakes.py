@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import Sequence
 
-from app.providers.base import ASRProvider, GroundingProvider, LLMProvider, OCRProvider, ProductLookupProvider, TTSProvider, TTSUnavailableError, VisionProvider
+from app.providers.base import ASRProvider, CurrencyDetectionProvider, GroundingProvider, LLMProvider, OCRProvider, ProductLookupProvider, TTSProvider, TTSUnavailableError, VisionProvider
 from app.schemas.common import ConversationTurn, VisionTask
+from app.schemas.currency import CurrencyDetectionResult
 from app.schemas.product import ProductInfo
 
 
@@ -76,4 +77,10 @@ class FakeProductLookupProvider(ProductLookupProvider):
             ingredients_text="water, sugar, salt",
             allergens=["milk"],
         )
+
+
+class FakeCurrencyDetectionProvider(CurrencyDetectionProvider):
+    def detect_currency(self, image_bytes: bytes) -> CurrencyDetectionResult | None:
+        _ = image_bytes
+        return CurrencyDetectionResult(denomination="20 EGP", confidence=0.92)
 
