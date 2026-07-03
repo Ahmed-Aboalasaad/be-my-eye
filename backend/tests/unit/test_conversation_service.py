@@ -115,20 +115,38 @@ def test_conversation_service_passes_grounding_result_to_llm():
 def test_conversation_service_prefers_request_supplied_history():
     from app.schemas.common import ConversationTurn
 
-    service = make_service()
+    class SpyLLMProvider(FakeLLMProvider):
+        def __init__(self) -> None:
+            self.received_history: list[ConversationTurn] = []
+
+        def generate_response(self, user_message, vision_summary, ocr_text, history, grounding_result=None):
+            self.received_history = list(history)
+            return super().generate_response(
+                user_message, vision_summary, ocr_text, history, grounding_result=grounding_result
+            )
+
+    spy_llm = SpyLLMProvider()
+    session_store = InMemorySessionStore()
+    service = ConversationService(
+        asr=FakeASRProvider(),
+        vision=FakeVisionProvider(),
+        ocr=FakeOCRProvider(),
+        llm=spy_llm,
+        tts=FakeTTSProvider(),
+        grounding=FakeGroundingProvider(),
+        session_store=session_store,
+        router=IntentRouter(),
+    )
+    request_history = [ConversationTurn(user_text="What is this?", assistant_text="A red mug.")]
     request = ConversationRequest(
         session_id="session-without-store-entry",
         image_base64=base64.b64encode(b"image-bytes").decode("ascii"),
         audio_base64=base64.b64encode(b"What color is it now?").decode("ascii"),
-        history=[ConversationTurn(user_text="What is this?", assistant_text="A red mug.")],
+        history=request_history,
     )
+    assert session_store.get_history("session-without-store-entry") == []
 
     response = service.handle(request)
 
     assert response.session_id == "session-without-store-entry"
-    # The FakeLLMProvider doesn't echo history directly, but the request must
-    # not error and must not fall back to the (empty) session store's history
-    # for this session_id -- covered structurally by test_conversation_service.py's
-    # FakeLLMProvider not raising, and by the dedicated history-preference
-    # unit test below at the router/service boundary being exercised without error.
-    assert response.text is not None
+    assert spy_llm.received_history == request_history
