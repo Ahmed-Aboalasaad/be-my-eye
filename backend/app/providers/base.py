@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Sequence
 
-from app.schemas.common import ConversationTurn
+from app.schemas.common import ConversationTurn, VisionTask
 
 
 class ASRProvider(ABC):
@@ -14,7 +14,13 @@ class ASRProvider(ABC):
 
 class VisionProvider(ABC):
     @abstractmethod
-    def analyze(self, image_bytes: bytes, question: str, history: Sequence[ConversationTurn]) -> str:
+    def analyze(
+        self,
+        image_bytes: bytes,
+        question: str,
+        history: Sequence[ConversationTurn],
+        task: VisionTask = VisionTask.scene,
+    ) -> str:
         raise NotImplementedError
 
 
@@ -38,6 +44,7 @@ class LLMProvider(ABC):
         vision_summary: str | None,
         ocr_text: str | None,
         history: Sequence[ConversationTurn],
+        grounding_result: str | None = None,
     ) -> str:
         raise NotImplementedError
 

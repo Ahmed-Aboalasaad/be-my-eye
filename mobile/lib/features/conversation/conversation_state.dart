@@ -37,10 +37,16 @@ class ConversationState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Always the first call of a new hold-to-ask gesture, so this is where
+  /// the previous turn's error and answer get cleared for the new attempt.
+  /// The later steps in the same gesture must not clobber an error this
+  /// step (or each other) already recorded -- see [startAudioRecording] and
+  /// [stopAudioRecording].
   Future<void> captureImage() async {
+    _lastError = null;
+    _lastResponse = null;
     try {
       _capturedImageBase64 = await _mediaCaptureService.captureImageBase64();
-      _lastError = null;
     } catch (error) {
       _lastError = 'Could not access the camera: $error';
     }
@@ -50,9 +56,8 @@ class ConversationState extends ChangeNotifier {
   Future<void> startAudioRecording() async {
     try {
       await _mediaCaptureService.startAudioRecording();
-      _lastError = null;
     } catch (error) {
-      _lastError = 'Could not start recording: $error';
+      _lastError ??= 'Could not start recording: $error';
     }
     notifyListeners();
   }
@@ -60,9 +65,8 @@ class ConversationState extends ChangeNotifier {
   Future<void> stopAudioRecording() async {
     try {
       _capturedAudioBase64 = await _mediaCaptureService.stopAudioRecording();
-      _lastError = null;
     } catch (error) {
-      _lastError = 'Could not finish recording: $error';
+      _lastError ??= 'Could not finish recording: $error';
     }
     notifyListeners();
   }

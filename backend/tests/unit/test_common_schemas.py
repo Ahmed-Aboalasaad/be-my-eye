@@ -39,3 +39,14 @@ def test_vision_task_has_four_members():
 
 def test_vision_task_default_is_scene():
     assert VisionTask.scene.value == "scene"
+
+
+def test_conversation_debug_defaults_new_fields_to_none():
+    debug = ConversationDebug(
+        transcript="What is this?",
+        selected_providers=["vision"],
+        vision_summary="a desk",
+    )
+
+    assert debug.vision_task is None
+    assert debug.grounding_result is None

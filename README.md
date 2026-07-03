@@ -24,10 +24,14 @@ An AI-powered voice assistant that helps blind and low-vision users understand a
 
 - **Scene understanding** — "What's in front of me?" answered from the latest camera frame.
 - **Object questions** — "Can I drink this?" answered with intent, not a generic description.
+- **Currency reader** — "How much is this?" identifies banknote denominations.
+- **Color detector** — "What color is this?" describes the color of an object.
+- **Product identifier** — "What am I holding?" reads brand/label context from packaging.
+- **Object finder (grounding)** — "Where are my keys?" locates an object within the frame.
 - **Text reading (OCR)** — "Read this page" extracts and reads visible text aloud.
 - **Multi-turn conversation memory** — short-term history so follow-ups ("Is it open?") resolve naturally.
-- **Fully voice-driven** — spoken input in, spoken response out, no typing required.
-- **Provider-based architecture** — every AI capability (ASR, Vision, OCR, LLM, TTS, and a Grounding placeholder for future object-location features) sits behind a stable interface, so any model or vendor can be swapped without touching application logic.
+- **Fully voice-driven, bilingual** — spoken input in (English or Arabic), spoken response out, no typing required.
+- **Provider-based architecture** — every AI capability (ASR, Vision, OCR, LLM, TTS, Grounding) sits behind a stable interface, so any model or vendor can be swapped without touching application logic.
 
 ## Project Status
 
@@ -36,16 +40,13 @@ This is an active proof-of-concept. Be honest with yourself about what's real be
 | Component | Status |
 | --- | --- |
 | Backend (FastAPI) | **Working, tested, deployed** — live on Vercel with real Groq providers |
-| Backend test suite | **Green** — 32 passed, 1 skipped (real-mode smoke test is env-gated) |
-| Mobile app (Flutter) | **Not yet implemented** — `mobile/lib/` does not exist in this repo. Only `mobile/test/` and `mobile/pubspec.yaml` exist; see [Known Issue](#known-issue-mobilelib-was-never-committed) below |
-| `/conversation` end-to-end | **Fully verified live** — ASR → routing → Vision → LLM → TTS all confirmed working against real Groq APIs |
-| CI/CD | **Not yet set up** — deploys are manual via the Vercel CLI today |
+| Backend test suite | **Green** — 54 passed, 1 skipped (real-mode smoke test is env-gated) |
+| Mobile app (Flutter) | **Working** — full app implemented (capture, playback, conversation state, Stitch-designed hold-to-ask screen), 20/20 tests passing, verified running live on an iOS Simulator |
+| Vision-task routing + grounding | **Working** — currency/color/product/scene routing and object-finder grounding, with Arabic keyword support (this app's ASR defaults to Arabic), verified live end-to-end |
+| `/conversation` end-to-end | **Fully verified live** — ASR → routing → Vision/OCR/Grounding → LLM → TTS all confirmed working against real Groq APIs |
+| CI/CD | **Set up** — GitHub Actions run backend `pytest` and mobile `flutter analyze && flutter test` on every PR; deploys remain manual via the Vercel CLI |
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full phased plan and [`docs/superpowers/plans/`](docs/superpowers/plans/) for the detailed, task-by-task implementation plans driving this work.
-
-### Known Issue: `mobile/lib/` Was Never Committed
-
-The root `.gitignore` used to be a Python project template. Its `lib/` pattern (intended for Python build output) also matched Flutter's `mobile/lib/` **source directory**, so every historical commit to `mobile/` silently excluded the actual Dart source code — only test files survived. This has been fixed (see decision [D-014](docs/DECISIONS.md)): `.gitignore` is now scoped per language root, and `mobile/lib/` is trackable going forward. The Flutter app itself still needs to be (re)written; the committed test files in `mobile/test/` describe the intended API surface (`ConversationState`, `BackendClient`, `MediaCaptureService`, `AudioPlaybackService`, `DemoCapture`) for whoever picks that up.
 
 ## Tech Stack
 
@@ -58,19 +59,23 @@ The root `.gitignore` used to be a Python project template. Its `lib/` pattern (
 - **Server:** Uvicorn (local dev)
 - **Deployment:** Vercel (Python / Fluid Compute runtime)
 
-**Mobile** *(planned/in-progress — see [Project Status](#project-status))*
+**Mobile**
 - **Framework:** Flutter (Dart SDK ≥3.8.0)
-- **Camera:** `camera`, `image_picker`
+- **State management:** `provider` (`ChangeNotifier`-based `ConversationState`)
+- **Camera:** `camera`
 - **Audio:** `record` (capture), `just_audio` (playback)
 - **Networking:** `http`
 - **Permissions:** `permission_handler`
+- **Image compression:** `image`
+- **Fonts:** `google_fonts`
 
 ## Prerequisites
 
 - **Python 3.11 or higher** (backend)
 - **A [Groq API key](https://console.groq.com/keys)** (for real AI responses; a fake-provider mode exists for development without one)
 - **[Vercel CLI](https://vercel.com/docs/cli)** — `npm i -g vercel` (only needed if you're deploying)
-- **Flutter SDK ≥3.8.0** — only once the mobile app is (re)implemented; not required to run the backend
+- **Flutter SDK ≥3.8.0** — for the mobile app; not required to run the backend
+- **Xcode or Android Studio** — for iOS Simulator / Android Emulator or physical-device testing (camera and microphone require real hardware; simulators/emulators have neither)
 
 ## Getting Started — Backend
 
@@ -162,15 +167,22 @@ With `USE_REAL_PROVIDERS` unset (the default), this returns deterministic fake-p
 
 ## Getting Started — Mobile
 
-**The mobile app source does not exist in this repository yet** (see [Known Issue](#known-issue-mobilelib-was-never-committed)). Once `mobile/lib/` is implemented:
-
 ```bash
 cd mobile
 flutter pub get
-flutter run --dart-define=BACKEND_URL=https://your-backend-url.vercel.app
+flutter run --dart-define=BACKEND_URL=https://backend-mu-azure-ghm6imsjg1.vercel.app
 ```
 
-The committed tests in `mobile/test/` (`conversation_state_test.dart`, `demo_capture_test.dart`, `models_test.dart`) describe the intended structure and can guide (re)implementation — see the "Mobile architecture" section of [`docs/superpowers/specs/2026-07-02-be-my-eye-mvp-design.md`](docs/superpowers/specs/2026-07-02-be-my-eye-mvp-design.md) for the full planned file layout.
+This runs the app against the deployed backend. To point at a local backend instead, run `uvicorn app.main:app --reload` in `backend/` and pass `--dart-define=BACKEND_URL=http://localhost:8000` (use your machine's LAN IP, not `localhost`, when running on a physical device).
+
+**Camera and microphone require real hardware.** The iOS Simulator and Android Emulator have neither — holding the "Hold to ask" button there shows "Could not access the camera" / "Could not start recording" errors, which is expected, not a bug. For a full test of the capture pipeline, run on a physical device:
+
+```bash
+flutter devices              # confirm your device is listed
+flutter run -d <device-id> --dart-define=BACKEND_URL=https://backend-mu-azure-ghm6imsjg1.vercel.app
+```
+
+On iOS, a physical device needs a signing team configured in Xcode (`open ios/Runner.xcworkspace`, then Signing & Capabilities) the first time you deploy to it.
 
 ## Architecture
 
@@ -207,9 +219,19 @@ be-my-eye/
 │   ├── vercel.json                    # Vercel deployment config
 │   ├── requirements.txt               # Mirrors pyproject.toml, required by Vercel's Python builder
 │   └── pyproject.toml                 # Dependencies, [tool.vercel] entrypoint
-├── mobile/                            # Flutter client (lib/ not yet implemented — see above)
-│   ├── test/                          # Committed tests describing the intended app contract
-│   └── pubspec.yaml                   # Dependencies already staged for camera/audio/networking
+├── mobile/                            # Flutter client
+│   ├── lib/
+│   │   ├── main.dart                          # Entry point, wires real services into ConversationState
+│   │   └── features/conversation/
+│   │       ├── conversation_screen.dart       # Accessible hold-to-ask screen (Stitch-designed UI)
+│   │       ├── conversation_state.dart        # ChangeNotifier orchestrating capture -> submit -> playback
+│   │       ├── backend_client.dart            # POST /conversation HTTP client
+│   │       ├── media_services.dart            # Camera/mic capture + image compression
+│   │       ├── audio_playback.dart            # Speech playback
+│   │       ├── models.dart                    # Request/response models
+│   │       └── demo_capture.dart              # Hardcoded demo image/audio for quick manual testing
+│   ├── test/                          # 20 tests covering state, models, capture, and the screen's semantics
+│   └── pubspec.yaml                   # camera, record, just_audio, http, provider, permission_handler, image, google_fonts
 ├── docs/                              # Vision, requirements, architecture, decisions, roadmap
 │   └── superpowers/                   # Design specs and implementation plans for this effort
 └── playground/                        # Prototype scripts (VLM, depth) — reference only, not production code
@@ -238,7 +260,7 @@ Every AI capability is an abstract base class in `backend/app/providers/base.py`
 | `OCRProvider` | Text extraction from images | Deterministic text | Delegates to the same Groq VLM |
 | `LLMProvider` | Final response reasoning | Deterministic response | Groq LLM |
 | `TTSProvider` | Text → speech | Deterministic UTF-8 bytes | Groq TTS |
-| `GroundingProvider` | Object location (future capability) | — | Groq VLM (adapter exists; not yet wired into the conversation flow) |
+| `GroundingProvider` | Object location ("where are my keys?") | Deterministic location string | Groq VLM |
 
 Swapping any provider's implementation — a different vendor, a local model, a specialized OCR engine — never requires changing `ConversationService`, the API contract, or the mobile client. See [`docs/PROVIDERS.md`](docs/PROVIDERS.md).
 
@@ -287,7 +309,7 @@ cd backend
 python3 -m pytest -v
 ```
 
-Expected output: **32 passed, 1 skipped**. The one skip is `tests/integration/test_real_mode_smoke.py`, which only runs when `RUN_REAL_GROQ_SMOKE_TESTS=true` and a real `GROQ_MULTIMODAL_MODEL` are set — it makes real Groq API calls and isn't part of the default fast, deterministic suite.
+Expected output: **54 passed, 1 skipped**. The one skip is `tests/integration/test_real_mode_smoke.py`, which only runs when `RUN_REAL_GROQ_SMOKE_TESTS=true` and a real `GROQ_MULTIMODAL_MODEL` are set — it makes real Groq API calls and isn't part of the default fast, deterministic suite.
 
 ### Test Structure
 
@@ -323,7 +345,7 @@ def test_intent_router_adds_ocr_for_text_requests():
     assert "ocr" in result
 ```
 
-Mobile tests (once `mobile/lib/` exists) run via `flutter test` from `mobile/`; the existing `mobile/test/` files already define the expected behavior for `ConversationState`, `BackendClient`, `MediaCaptureService`, and `AudioPlaybackService` using fake implementations of each.
+Mobile tests run via `flutter test` from `mobile/` (20 tests, all passing) and cover `ConversationState`, `BackendClient`, `MediaCaptureService`, `AudioPlaybackService`, and the conversation screen's semantics, using fake implementations of each service. `flutter analyze` is clean with no issues.
 
 ## Deployment
 
@@ -385,7 +407,12 @@ curl http://localhost:3000/health
 
 ### CI/CD
 
-Not yet implemented. The plan (see [`docs/superpowers/specs/2026-07-02-be-my-eye-mvp-design.md`](docs/superpowers/specs/2026-07-02-be-my-eye-mvp-design.md), Section 4.6) calls for GitHub Actions running `pytest` (backend) and `flutter analyze && flutter test` (mobile) on every PR, plus Vercel's native Git integration for automatic preview/production deploys — connecting the GitHub repo to the Vercel project via the dashboard is a one-time manual step when that's implemented.
+GitHub Actions run tests on every push/PR, path-filtered so each workflow only runs when its area changes:
+
+- [`.github/workflows/backend-ci.yml`](.github/workflows/backend-ci.yml) — `pytest` with fake providers (no secrets required), triggered on `backend/**` changes
+- [`.github/workflows/mobile-ci.yml`](.github/workflows/mobile-ci.yml) — `flutter analyze && flutter test`, triggered on `mobile/**` changes
+
+These workflows run tests only — they do not deploy anything. Deploys remain manual via the Vercel CLI (see [Deploy](#deploy) above). **Recommended next step (manual, one-time):** connect this GitHub repository to the Vercel project via the [Vercel dashboard](https://vercel.com/dashboard) → Project Settings → Git, so pushes to `main` auto-deploy to production and PRs get preview URLs automatically.
 
 ## Troubleshooting
 
@@ -407,7 +434,11 @@ Check `vercel env ls production` — environment variables set locally in a `.en
 
 ### `mobile/lib/main.dart` is gitignored / mobile changes aren't being tracked
 
-This was a real historical bug (see [Known Issue](#known-issue-mobilelib-was-never-committed)) and is now fixed. If you still see this, check `git check-ignore -v mobile/lib/main.dart` — it should report no match. If it does match something, your local `.gitignore` may predate the fix; pull the latest `main`.
+The root `.gitignore` used to be a Python project template whose `lib/` pattern (intended for Python build output) also matched Flutter's `mobile/lib/` source directory, silently excluding Dart source from every commit. This was fixed by scoping `.gitignore` per language root (see decision [D-014](docs/DECISIONS.md)). If you still see this, check `git check-ignore -v mobile/lib/main.dart` — it should report no match. If it does match something, your local `.gitignore` may predate the fix; pull the latest `main`.
+
+### "Hold to ask" shows "Could not access the camera" / "Could not start recording"
+
+Expected on the iOS Simulator and Android Emulator — neither has a camera or microphone. Test on a physical device (see [Getting Started — Mobile](#getting-started--mobile)).
 
 ## Documentation Map
 

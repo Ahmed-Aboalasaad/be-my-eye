@@ -69,6 +69,21 @@ class ThrowingMediaCaptureService implements MediaCaptureService {
   }
 }
 
+class CameraFailsButMicWorksMediaCaptureService implements MediaCaptureService {
+  @override
+  Future<String> captureImageBase64() async {
+    throw StateError('No cameras available.');
+  }
+
+  @override
+  Future<void> startAudioRecording() async {}
+
+  @override
+  Future<String> stopAudioRecording() async {
+    return 'captured-audio';
+  }
+}
+
 void main() {
   test('ConversationState rejects send attempts without captures', () async {
     final backendClient = FakeBackendClient();
@@ -167,5 +182,39 @@ void main() {
     await state.stopAudioRecording();
 
     expect(state.lastError, contains('Could not finish recording'));
+  });
+
+  test('a later successful step does not erase an earlier step\'s error', () async {
+    final backendClient = FakeBackendClient();
+    final state = ConversationState(
+      backendClient: backendClient,
+      mediaCaptureService: CameraFailsButMicWorksMediaCaptureService(),
+      audioPlaybackService: FakeAudioPlaybackService(),
+    );
+
+    await state.captureImage();
+    await state.startAudioRecording();
+    await state.stopAudioRecording();
+
+    expect(state.lastError, contains('Could not access the camera'));
+  });
+
+  test('starting a new gesture clears the previous turn\'s answer', () async {
+    final backendClient = FakeBackendClient();
+    final mediaCaptureService = FakeMediaCaptureService();
+    final audioPlaybackService = FakeAudioPlaybackService();
+    final state = ConversationState(
+      backendClient: backendClient,
+      mediaCaptureService: mediaCaptureService,
+      audioPlaybackService: audioPlaybackService,
+    );
+
+    state.loadDemoCapture();
+    await state.submit(sessionId: 'session-turn-1');
+    expect(state.lastResponse, isNotNull);
+
+    await state.captureImage();
+
+    expect(state.lastResponse, isNull);
   });
 }

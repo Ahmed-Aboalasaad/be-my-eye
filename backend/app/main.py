@@ -6,8 +6,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.conversation import create_conversation_router
 from app.core.config import get_settings
 from app.core.prompts import get_prompt_config
-from app.providers.fakes import FakeASRProvider, FakeLLMProvider, FakeOCRProvider, FakeTTSProvider, FakeVisionProvider
-from app.providers.groq import GroqASRProvider, GroqLLMProvider, GroqOCRProvider, GroqTTSProvider, GroqVisionProvider
+from app.providers.fakes import (
+    FakeASRProvider,
+    FakeGroundingProvider,
+    FakeLLMProvider,
+    FakeOCRProvider,
+    FakeTTSProvider,
+    FakeVisionProvider,
+)
+from app.providers.groq import (
+    GroqASRProvider,
+    GroqGroundingProvider,
+    GroqLLMProvider,
+    GroqOCRProvider,
+    GroqTTSProvider,
+    GroqVisionProvider,
+)
 from app.services.conversation_service import ConversationService
 from app.services.intent_router import IntentRouter
 from app.services.session_store import InMemorySessionStore
@@ -26,6 +40,7 @@ def create_app() -> FastAPI:
             ocr=GroqOCRProvider(model=settings.groq_multimodal_model, prompts=prompts),
             llm=GroqLLMProvider(model=settings.groq_llm_model, prompts=prompts),
             tts=GroqTTSProvider(model=settings.groq_tts_model, voice=settings.groq_tts_voice),
+            grounding=GroqGroundingProvider(model=settings.groq_multimodal_model, prompts=prompts),
             session_store=InMemorySessionStore(),
             router=IntentRouter(),
         )
@@ -36,6 +51,7 @@ def create_app() -> FastAPI:
             ocr=FakeOCRProvider(),
             llm=FakeLLMProvider(),
             tts=FakeTTSProvider(),
+            grounding=FakeGroundingProvider(),
             session_store=InMemorySessionStore(),
             router=IntentRouter(),
         )
