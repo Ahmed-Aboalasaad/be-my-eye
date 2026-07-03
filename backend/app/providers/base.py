@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Sequence
 
 from app.schemas.common import ConversationTurn, VisionTask
+from app.schemas.currency import CurrencyDetectionResult
 from app.schemas.product import ProductInfo
 
 
@@ -63,4 +64,10 @@ class TTSProvider(ABC):
 class ProductLookupProvider(ABC):
     @abstractmethod
     def lookup_by_barcode(self, barcode: str) -> ProductInfo | None:
+        raise NotImplementedError
+
+
+class CurrencyDetectionProvider(ABC):
+    @abstractmethod
+    def detect_currency(self, image_bytes: bytes) -> CurrencyDetectionResult | None:
         raise NotImplementedError
