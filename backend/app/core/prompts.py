@@ -15,6 +15,11 @@ class PromptConfig:
     currency_instruction: str
     color_instruction: str
     product_instruction: str
+    food_instruction: str
+    people_instruction: str
+    environment_instruction: str
+    clothing_instruction: str
+    label_instruction: str
 
 
 def get_prompt_config() -> PromptConfig:
@@ -54,5 +59,36 @@ def get_prompt_config() -> PromptConfig:
         product_instruction=os.getenv(
             "BE_MY_EYE_PRODUCT_INSTRUCTION_PROMPT",
             "Identify the product the user is holding, including brand and type if visible on the packaging or label. Express uncertainty if the label is not clearly readable.",
+        ),
+        food_instruction=os.getenv(
+            "BE_MY_EYE_FOOD_INSTRUCTION_PROMPT",
+            "Identify the dish and list the visible ingredients. If asked about dietary suitability, "
+            "state that it 'appears to' or 'looks like' it contains meat, pork, or alcohol -- never "
+            "guarantee halal or vegetarian status. Call out visible common allergens (nuts, dairy, "
+            "eggs, gluten, shellfish) as a caution, noting that hidden ingredients cannot be seen. "
+            "If asked for a nutrition estimate, give a rough calorie range and state clearly that it "
+            "is an approximate, photo-based guess, not a measurement.",
+        ),
+        people_instruction=os.getenv(
+            "BE_MY_EYE_PEOPLE_INSTRUCTION_PROMPT",
+            "Describe how many people are visible, their general orientation (facing toward or away "
+            "from the camera), and visible expression or body language. Never attempt to recognize "
+            "who any person is -- describe appearance and behavior only, never a name.",
+        ),
+        environment_instruction=os.getenv(
+            "BE_MY_EYE_ENVIRONMENT_INSTRUCTION_PROMPT",
+            "Describe environment and safety-relevant conditions: whether lights appear on or off, "
+            "whether the room is bright or dark, and whether any visible stove or burner appears lit. "
+            "State these plainly, and say so if a condition is not clearly visible in the image.",
+        ),
+        clothing_instruction=os.getenv(
+            "BE_MY_EYE_CLOTHING_INSTRUCTION_PROMPT",
+            "Describe the visible clothing items, whether their colors match or clash, and note any "
+            "visible stains or wrinkles. Keep the assessment plain and practical.",
+        ),
+        label_instruction=os.getenv(
+            "BE_MY_EYE_LABEL_INSTRUCTION_PROMPT",
+            "Read any expiry date or medicine/drug name visible on the label. State the date or name "
+            "plainly. If the text is unclear or partially obscured, say so rather than guessing.",
         ),
     )
