@@ -77,3 +77,23 @@ def test_settings_reads_egyptian_tts_space_id_override(monkeypatch):
     settings = get_settings()
 
     assert settings.egyptian_tts_space_id == "some-other/space"
+
+
+def test_settings_includes_roboflow_currency_defaults():
+    settings = get_settings()
+
+    assert settings.roboflow_api_key == ""
+    assert settings.roboflow_currency_project == "egyptian-currency-psnkr"
+    assert settings.roboflow_currency_version == "1"
+
+
+def test_settings_reads_roboflow_currency_overrides(monkeypatch):
+    monkeypatch.setenv("ROBOFLOW_API_KEY", "test-roboflow-key")
+    monkeypatch.setenv("ROBOFLOW_CURRENCY_PROJECT", "some-other-project")
+    monkeypatch.setenv("ROBOFLOW_CURRENCY_VERSION", "3")
+
+    settings = get_settings()
+
+    assert settings.roboflow_api_key == "test-roboflow-key"
+    assert settings.roboflow_currency_project == "some-other-project"
+    assert settings.roboflow_currency_version == "3"

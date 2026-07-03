@@ -18,6 +18,7 @@ from app.providers.fakes import (
 )
 from app.providers.egyptian_tts import EgyptianTTSProvider
 from app.providers.openfoodfacts import OpenFoodFactsProductLookupProvider
+from app.providers.roboflow_currency import RoboflowCurrencyProvider
 from app.providers.groq import (
     GroqASRProvider,
     GroqGroundingProvider,
@@ -38,6 +39,15 @@ def create_app() -> FastAPI:
     if settings.use_real_providers:
         if not settings.groq_multimodal_model:
             raise RuntimeError("GROQ_MULTIMODAL_MODEL is required when real providers are enabled.")
+        currency_detector = (
+            RoboflowCurrencyProvider(
+                project=settings.roboflow_currency_project,
+                version=settings.roboflow_currency_version,
+                api_key=settings.roboflow_api_key,
+            )
+            if settings.roboflow_api_key
+            else None
+        )
         service = ConversationService(
             asr=GroqASRProvider(model=settings.groq_asr_model, language=settings.groq_asr_language),
             vision=GroqVisionProvider(model=settings.groq_multimodal_model, prompts=prompts),
@@ -47,6 +57,7 @@ def create_app() -> FastAPI:
             grounding=GroqGroundingProvider(model=settings.groq_multimodal_model, prompts=prompts),
             session_store=InMemorySessionStore(),
             router=IntentRouter(),
+            currency_detector=currency_detector,
         )
     else:
         service = ConversationService(
