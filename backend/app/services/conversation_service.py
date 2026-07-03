@@ -3,7 +3,15 @@ from __future__ import annotations
 import base64
 from dataclasses import dataclass
 
-from app.providers.base import ASRProvider, GroundingProvider, LLMProvider, OCRProvider, TTSProvider, VisionProvider
+from app.providers.base import (
+    ASRProvider,
+    GroundingProvider,
+    LLMProvider,
+    OCRProvider,
+    TTSProvider,
+    TTSUnavailableError,
+    VisionProvider,
+)
 from app.schemas.common import ConversationDebug, ConversationResponse, ConversationTurn
 from app.schemas.conversation import ConversationRequest
 from app.services.intent_router import IntentRouter
@@ -52,7 +60,12 @@ class ConversationService:
         response_text = self.llm.generate_response(
             transcript, vision_summary, ocr_text, history, grounding_result=grounding_result
         )
-        speech_bytes = self.tts.synthesize_speech(response_text)
+        tts_fallback_required = False
+        try:
+            speech_bytes = self.tts.synthesize_speech(response_text)
+        except TTSUnavailableError:
+            speech_bytes = b""
+            tts_fallback_required = True
 
         self.session_store.append_turn(
             request.session_id,
@@ -74,6 +87,7 @@ class ConversationService:
             session_id=request.session_id,
             text=response_text,
             audio_base64=base64.b64encode(speech_bytes).decode("ascii"),
+            tts_fallback_required=tts_fallback_required,
             debug=debug,
         )
 

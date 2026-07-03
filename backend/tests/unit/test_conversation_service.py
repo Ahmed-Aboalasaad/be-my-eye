@@ -150,3 +150,29 @@ def test_conversation_service_prefers_request_supplied_history():
 
     assert response.session_id == "session-without-store-entry"
     assert spy_llm.received_history == request_history
+
+
+def test_conversation_service_sets_fallback_flag_when_tts_unavailable():
+    from app.providers.fakes import FakeFailingTTSProvider
+
+    service = ConversationService(
+        asr=FakeASRProvider(),
+        vision=FakeVisionProvider(),
+        ocr=FakeOCRProvider(),
+        llm=FakeLLMProvider(),
+        tts=FakeFailingTTSProvider(),
+        grounding=FakeGroundingProvider(),
+        session_store=InMemorySessionStore(),
+        router=IntentRouter(),
+    )
+    request = ConversationRequest(
+        session_id="session-1",
+        image_base64=base64.b64encode(b"image-bytes").decode("ascii"),
+        audio_base64=base64.b64encode(b"What is in front of me?").decode("ascii"),
+    )
+
+    response = service.handle(request)
+
+    assert response.tts_fallback_required is True
+    assert response.audio_base64 == ""
+    assert response.text  # the text answer must still be present

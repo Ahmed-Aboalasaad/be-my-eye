@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Sequence
 
-from app.providers.base import ASRProvider, GroundingProvider, LLMProvider, OCRProvider, ProductLookupProvider, TTSProvider, VisionProvider
+from app.providers.base import ASRProvider, GroundingProvider, LLMProvider, OCRProvider, ProductLookupProvider, TTSProvider, TTSUnavailableError, VisionProvider
 from app.schemas.common import ConversationTurn, VisionTask
 from app.schemas.product import ProductInfo
 
@@ -59,6 +59,11 @@ class FakeLLMProvider(LLMProvider):
 class FakeTTSProvider(TTSProvider):
     def synthesize_speech(self, text: str) -> bytes:
         return text.encode("utf-8")
+
+
+class FakeFailingTTSProvider(TTSProvider):
+    def synthesize_speech(self, text: str) -> bytes:
+        raise TTSUnavailableError("fake TTS failure for testing")
 
 
 class FakeProductLookupProvider(ProductLookupProvider):
