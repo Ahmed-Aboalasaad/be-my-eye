@@ -11,6 +11,11 @@ class VisionTask(str, Enum):
     currency = "currency"
     color = "color"
     product = "product"
+    food = "food"
+    people = "people"
+    environment = "environment"
+    clothing = "clothing"
+    label = "label"
 
 
 class ConversationTurn(BaseModel):

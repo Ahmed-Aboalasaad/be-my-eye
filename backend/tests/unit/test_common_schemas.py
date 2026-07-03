@@ -33,8 +33,18 @@ def test_conversation_response_model():
     assert response.audio_base64 == "YWJj"
 
 
-def test_vision_task_has_four_members():
-    assert {member.value for member in VisionTask} == {"scene", "currency", "color", "product"}
+def test_vision_task_has_nine_members():
+    assert {member.value for member in VisionTask} == {
+        "scene",
+        "currency",
+        "color",
+        "product",
+        "food",
+        "people",
+        "environment",
+        "clothing",
+        "label",
+    }
 
 
 def test_vision_task_default_is_scene():
@@ -50,3 +60,11 @@ def test_conversation_debug_defaults_new_fields_to_none():
 
     assert debug.vision_task is None
     assert debug.grounding_result is None
+
+
+def test_vision_task_includes_new_accessibility_capabilities():
+    assert VisionTask.food.value == "food"
+    assert VisionTask.people.value == "people"
+    assert VisionTask.environment.value == "environment"
+    assert VisionTask.clothing.value == "clothing"
+    assert VisionTask.label.value == "label"
