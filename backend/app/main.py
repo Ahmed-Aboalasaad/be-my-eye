@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.conversation import create_conversation_router
+from app.api.product import create_product_router
 from app.core.config import get_settings
 from app.core.prompts import get_prompt_config
 from app.providers.fakes import (
@@ -11,9 +12,11 @@ from app.providers.fakes import (
     FakeGroundingProvider,
     FakeLLMProvider,
     FakeOCRProvider,
+    FakeProductLookupProvider,
     FakeTTSProvider,
     FakeVisionProvider,
 )
+from app.providers.openfoodfacts import OpenFoodFactsProductLookupProvider
 from app.providers.groq import (
     GroqASRProvider,
     GroqGroundingProvider,
@@ -56,6 +59,10 @@ def create_app() -> FastAPI:
             router=IntentRouter(),
         )
 
+    product_lookup_provider = (
+        OpenFoodFactsProductLookupProvider() if settings.use_real_providers else FakeProductLookupProvider()
+    )
+
     app = FastAPI(title=settings.app_name, debug=settings.debug)
     app.add_middleware(
         CORSMiddleware,
@@ -64,6 +71,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(create_conversation_router(service))
+    app.include_router(create_product_router(product_lookup_provider))
 
     @app.get("/health")
     def health() -> dict[str, str]:

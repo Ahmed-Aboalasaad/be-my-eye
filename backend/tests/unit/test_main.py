@@ -20,3 +20,10 @@ def test_create_app_wires_grounding_provider_in_fake_mode(monkeypatch):
     app = create_app()
 
     assert app is not None
+
+
+def test_create_app_registers_product_lookup_route():
+    app = create_app()
+
+    paths = {route.path for route in app.routes}
+    assert "/product-lookup" in paths
