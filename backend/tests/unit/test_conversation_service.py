@@ -247,6 +247,48 @@ def test_conversation_service_prefers_request_supplied_history():
     assert spy_llm.received_history == request_history
 
 
+def test_conversation_service_does_not_resurrect_stale_history_for_an_explicitly_empty_request():
+    from app.schemas.common import ConversationTurn
+
+    class SpyLLMProvider(FakeLLMProvider):
+        def __init__(self) -> None:
+            self.received_history: list[ConversationTurn] = []
+
+        def generate_response(self, user_message, vision_summary, ocr_text, history, grounding_result=None):
+            self.received_history = list(history)
+            return super().generate_response(
+                user_message, vision_summary, ocr_text, history, grounding_result=grounding_result
+            )
+
+    spy_llm = SpyLLMProvider()
+    session_store = InMemorySessionStore()
+    # Simulates a session_id being reused across unrelated conversations
+    # (e.g. a warm serverless instance, or the mobile app's shared default
+    # session id) -- the store has stale turns from a prior, unrelated chat.
+    session_store.append_turn("reused-session", ConversationTurn(user_text="old question", assistant_text="old answer"))
+
+    service = ConversationService(
+        asr=FakeASRProvider(),
+        vision=FakeVisionProvider(),
+        ocr=FakeOCRProvider(),
+        llm=spy_llm,
+        tts=FakeTTSProvider(),
+        grounding=FakeGroundingProvider(),
+        session_store=session_store,
+        router=IntentRouter(),
+    )
+    request = ConversationRequest(
+        session_id="reused-session",
+        image_base64=base64.b64encode(b"image-bytes").decode("ascii"),
+        audio_base64=base64.b64encode(b"What is in front of me?").decode("ascii"),
+        history=[],
+    )
+
+    service.handle(request)
+
+    assert spy_llm.received_history == []
+
+
 def test_conversation_service_sets_fallback_flag_when_tts_unavailable():
     from app.providers.fakes import FakeFailingTTSProvider
 

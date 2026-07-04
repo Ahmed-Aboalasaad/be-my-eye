@@ -49,7 +49,14 @@ class ConversationService:
         image_bytes = self._decode_base64(request.image_base64, "image_base64")
 
         transcript = self._guarded("process the provided audio", lambda: self.asr.transcribe(audio_bytes))
-        history = request.history or self.session_store.get_history(request.session_id)
+        # `or` would treat an empty-but-intentional history (a genuinely fresh
+        # conversation) as falsy and silently fall back to session_store,
+        # which can resurrect stale turns from an unrelated earlier
+        # conversation that happened to reuse the same session_id (e.g. a
+        # warm serverless instance, or the mobile app's default session id).
+        # The mobile client always sends its full accumulated history on
+        # every request, so request.history is authoritative here.
+        history = request.history
         decision = self.router.route(transcript)
 
         currency_result: CurrencyDetectionResult | None = None
