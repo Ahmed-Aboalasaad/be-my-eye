@@ -51,7 +51,7 @@ This is an active proof-of-concept. Be honest with yourself about what's real be
 | Mobile app (Flutter) | **Working** — full app implemented (capture, playback, conversation state, Money Mode, barcode scanning, Stitch-designed hold-to-ask screen), 28/28 tests passing, `flutter analyze` clean |
 | Vision-task routing + grounding | **Working** — scene/currency/color/product/food/people/environment/clothing/label routing and object-finder grounding, with Arabic keyword support (this app's ASR defaults to Arabic), verified live end-to-end |
 | `/conversation` end-to-end | **Fully verified live** — ASR → routing → Vision/OCR/Grounding → LLM → TTS all confirmed working against real Groq APIs |
-| Egyptian currency detection | **Code complete, not live-verified** — `RoboflowCurrencyProvider` is written against Roboflow's documented REST contract but needs a free Roboflow account + API key to actually run; falls back to the general VLM until then (see [Environment Variables](#environment-variables)) |
+| Egyptian currency detection | **Working, live-verified** — `RoboflowCurrencyProvider` confirmed against the real hosted API with a live `ROBOFLOW_API_KEY`; falls back to the general VLM if the key is ever removed (see [Environment Variables](#environment-variables)) |
 | Egyptian TTS voice | **Working, live-verified** — calls a free, public Gradio Space for Egyptian-dialect speech; falls back to the phone's offline Arabic voice on failure |
 | Product/barcode lookup | **Working, live-verified** — free Open Food Facts API, no account needed |
 | CI/CD | **Set up** — GitHub Actions run backend `pytest` and mobile `flutter analyze && flutter test` on every PR; deploys remain manual via the Vercel CLI |
@@ -319,14 +319,14 @@ All settings are read by `backend/app/core/config.py`. A `.env` file at the repo
 
 ### Enabling accurate Egyptian currency detection (optional, free)
 
-Money Mode and voice currency questions work out of the box via the general VLM, but for the specialist detector's higher accuracy:
+**Already configured on the deployed production backend** — `ROBOFLOW_API_KEY` is set (in Vercel production env vars and this repo's GitHub Actions secrets), confirmed working against the live hosted API. To set this up in a fresh environment:
 
 1. Create a free account at [roboflow.com](https://roboflow.com).
 2. Find or fork the Egyptian currency model (e.g. the Banha University project on Roboflow Universe) into your own workspace.
 3. Open its Deploy tab and use "Get curl command" to confirm the exact project slug, version number, and API key for your account.
 4. Set `ROBOFLOW_API_KEY` (and `ROBOFLOW_CURRENCY_PROJECT`/`ROBOFLOW_CURRENCY_VERSION` if they differ from the defaults above).
 
-Until this is done, `currency_detector` stays unconfigured and every currency question uses the general VLM — identical to the app's behavior before this feature existed.
+Without `ROBOFLOW_API_KEY` set, `currency_detector` stays unconfigured and every currency question uses the general VLM instead — the app still works, just with lower currency accuracy.
 
 Never commit a `.env` file — it's already covered by `.gitignore`. On Vercel, set these as [project environment variables](https://vercel.com/docs/projects/environment-variables) (see [Deployment](#deployment)), not in `vercel.json`.
 

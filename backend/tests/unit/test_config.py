@@ -79,7 +79,11 @@ def test_settings_reads_egyptian_tts_space_id_override(monkeypatch):
     assert settings.egyptian_tts_space_id == "some-other/space"
 
 
-def test_settings_includes_roboflow_currency_defaults():
+def test_settings_includes_roboflow_currency_defaults(monkeypatch):
+    monkeypatch.delenv("ROBOFLOW_API_KEY", raising=False)
+    monkeypatch.delenv("ROBOFLOW_CURRENCY_PROJECT", raising=False)
+    monkeypatch.delenv("ROBOFLOW_CURRENCY_VERSION", raising=False)
+
     settings = get_settings()
 
     assert settings.roboflow_api_key == ""

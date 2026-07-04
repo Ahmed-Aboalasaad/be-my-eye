@@ -12,13 +12,15 @@ ROBOFLOW_DETECT_URL = "https://detect.roboflow.com/{project}/{version}"
 
 class RoboflowCurrencyProvider(CurrencyDetectionProvider):
     """Calls Roboflow's hosted inference API for the Egyptian-currency
-    detection model. NOTE: this integration is written against Roboflow's
-    documented REST contract but was not live-verified end-to-end during
-    design (unlike EgyptianTTSProvider) -- it requires a Roboflow account
-    and API key this session does not have. The exact class-label strings
-    the model returns are unknown until confirmed against a live project;
-    detect_currency() passes the raw label through unmodified rather than
-    assuming a specific format.
+    detection model. Live-verified end-to-end against the real hosted API
+    with a real ROBOFLOW_API_KEY -- the request/response contract below
+    matches production, not just Roboflow's documented shape. The exact
+    class-label strings this specific model returns for real banknotes are
+    still unconfirmed (verification so far used a non-currency test image,
+    which correctly returned an empty prediction list); detect_currency()
+    passes the raw label through unmodified rather than assuming a specific
+    format, and CurrencyLookupService maps digits extracted from it to
+    curated Arabic phrases rather than speaking it directly.
     """
 
     def __init__(
