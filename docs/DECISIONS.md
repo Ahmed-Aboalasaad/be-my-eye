@@ -345,19 +345,70 @@ wasn't necessary once the simpler fix was visible.
 
 **Finding**
 
-Tested `RoboflowCurrencyProvider` against 5 real reference banknote images (official
-Wikimedia Commons photos: the 10 EGP and 20 EGP polymer notes, the 100 EGP note, and an
-older 1-pound bill) at both default and `confidence=1` (near-zero threshold). Every
-request returned an empty `predictions` list. The Roboflow API integration itself is
-confirmed correct (200 OK, correct response shape, previously live-verified with a
-non-currency image) — this specific trained model (`egyptian-currency-psnkr` v1) simply
-does not recognize any tested real banknote.
+Tested `RoboflowCurrencyProvider` against 7 real images total, across two rounds:
+- Round 1 (5 images): official Wikimedia Commons reference photos — the 10 EGP and
+  20 EGP polymer notes, the 100 EGP note, an older 1-pound bill, and one non-currency
+  control image.
+- Round 2 (2 images, after digging into *why*): a clean single-note press photo, and a
+  genuinely natural/candid real-world photo (a Wiki Loves Africa contest submission
+  showing cash and tickets, 6000×4000, Nikon D5300) — tested at both full resolution
+  and resized to 640px, and against both of the model's known hostnames
+  (`detect.roboflow.com` and its registered `serverless.roboflow.com` endpoint).
+
+Every request across both rounds returned an empty `predictions` list, at confidence
+thresholds down to 1%.
+
+**This is not a low-quality or undeployed model.** Queried Roboflow's own project API
+directly (`api.roboflow.com/banha-university-dxs4z/egyptian-currency-psnkr/1`): the
+project has 4,787 annotated images across 12 classes, built by Banha University, and
+version 1 (the only version with an actual deployed model — versions 2 and 3 are
+dataset-only, `"models": {}`) reports **99.50% mAP, 96.29% recall, 96.56% precision**
+on its own held-out test set. The API integration is unambiguously correct: 200 OK,
+correct response shape, correct project/version, both possible hostnames tried.
+
+**Most likely explanation**: a train/deploy distribution gap. The model's excellent
+metrics are measured against a held-out split of its *own* training images, which were
+very likely collected under fairly homogeneous conditions (e.g. a specific team's
+capture setup). None of our 7 test images — spanning official press photos, a
+historical bill, and a genuinely natural phone-camera-style photo from an unrelated
+source — matched whatever that training distribution actually looks like closely
+enough to fire, despite the model excelling on its own test set. This is a well-known
+generalization problem with small/narrow academic datasets, not a bug in
+`RoboflowCurrencyProvider` or the request format.
 
 **Consequence**
 
 `RoboflowCurrencyProvider` currently defers to the VLM fallback for every real currency
 query in production. The D-017 hybrid architecture handles this gracefully (no user
-ever sees a broken response), but the "specialist tried first" path is not adding value
-with this specific model version right now. Swapping in a better-trained Roboflow
-model/dataset would restore the intended fast-path benefit. See the "Not Done Yet" list
-in `docs/ROADMAP.md`.
+ever sees a broken response), and D-023's prompt sharpening improves the fallback
+path's own accuracy. But the "specialist tried first" path is not adding value with
+this specific model right now. Next step, if this still matters: test with an actual
+phone-camera photo of a real banknote from this project's own target hardware (closer
+to the model's real-world use case than any of the 7 test images tried so far), or
+evaluate an alternative Roboflow Universe project (e.g. "New Egyptian Currency Object
+Detection Dataset" by Belal Safy, or "EgyCurrency-Detectron") — unverified candidates,
+not yet tested.
+
+---
+
+## D-023: Responses Must Spell Out Numbers as Arabic Words, Never Digits
+
+**Decision**
+
+`vision_system` and `llm_system` now explicitly require every number in a response to
+be spelled out as an Arabic word (e.g. عشرين، خمسين، مية) rather than written as a
+digit (20, ٢٠, 50). `currency_instruction` was also sharpened to prioritize reading the
+denomination actually printed on a note over a general color/size impression, and to
+state uncertainty honestly rather than guess.
+
+**Reason**
+
+Reported bug: spoken amounts were inaccurate and the Egyptian voice mispronounced
+numbers. Both TTS paths (the cloud Egyptian voice and the on-device Arabic fallback)
+read numeral digits inconsistently/incorrectly regardless of engine — spelling numbers
+out as words in the source text sidesteps the whole class of problem rather than
+depending on either TTS engine's numeral-reading behavior. `CurrencyLookupService`'s
+specialist-path phrases (`DENOMINATION_PHRASES_AR`) already used words, not digits; this
+closed the same gap for the LLM/VLM-generated paths, which is where it actually
+mattered given D-022 means most real Money Mode use goes through the VLM fallback right
+now, not the specialist path.
