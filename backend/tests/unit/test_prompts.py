@@ -34,6 +34,18 @@ def test_prompt_config_answer_style_allows_multi_sentence_responses(monkeypatch)
     assert "2 to 4 sentences" in prompts.llm_answer_style.lower()
 
 
+def test_prompt_config_requires_spelled_out_numbers(monkeypatch):
+    monkeypatch.delenv("BE_MY_EYE_VISION_SYSTEM_PROMPT", raising=False)
+    monkeypatch.delenv("BE_MY_EYE_LLM_SYSTEM_PROMPT", raising=False)
+    monkeypatch.delenv("BE_MY_EYE_CURRENCY_INSTRUCTION_PROMPT", raising=False)
+
+    prompts = get_prompt_config()
+
+    assert "spell out" in prompts.vision_system.lower()
+    assert "spell out" in prompts.llm_system.lower()
+    assert "printed" in prompts.currency_instruction.lower()
+
+
 def test_prompt_config_reads_overrides(monkeypatch):
     monkeypatch.setenv("BE_MY_EYE_VISION_SYSTEM_PROMPT", "vision override")
     monkeypatch.setenv("BE_MY_EYE_VISION_INSTRUCTION_PROMPT", "instruction override")

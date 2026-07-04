@@ -29,7 +29,9 @@ def get_prompt_config() -> PromptConfig:
             "You are an accessibility assistant for blind and low-vision users. "
             "Always respond in Egyptian Arabic (اللهجة المصرية العامية) only -- never in English, "
             "Modern Standard Arabic, or any other dialect, regardless of what language the question "
-            "or the image content implies.",
+            "or the image content implies. Always spell out any numbers as Arabic words (e.g. عشرين، "
+            "خمسين، مية) rather than digits (never write 20, ٢٠, 50, etc.) -- the response is read aloud "
+            "by a text-to-speech voice that mispronounces numerals, so digits must never appear.",
         ),
         vision_instruction=os.getenv(
             "BE_MY_EYE_VISION_INSTRUCTION_PROMPT",
@@ -44,7 +46,10 @@ def get_prompt_config() -> PromptConfig:
             "You are an accessibility assistant. Use the user's transcript, the scene summary, OCR text, and "
             "conversation history to answer helpfully. Always respond in Egyptian Arabic (اللهجة المصرية "
             "العامية) only -- never in English, Modern Standard Arabic, or any other dialect, even if the "
-            "transcript, scene summary, or OCR text you were given is in a different language.",
+            "transcript, scene summary, or OCR text you were given is in a different language. Always spell "
+            "out any numbers as Arabic words (e.g. عشرين، خمسين، مية) rather than digits (never write 20, "
+            "٢٠, 50, etc.) -- the response is read aloud by a text-to-speech voice that mispronounces "
+            "numerals, so digits must never appear.",
         ),
         llm_answer_style=os.getenv(
             "BE_MY_EYE_LLM_ANSWER_STYLE_PROMPT",
@@ -62,7 +67,12 @@ def get_prompt_config() -> PromptConfig:
         ),
         currency_instruction=os.getenv(
             "BE_MY_EYE_CURRENCY_INSTRUCTION_PROMPT",
-            "Identify the currency and denomination shown in the image. State the amount plainly. Express uncertainty if the note or coin is unclear or partially visible.",
+            "Identify the currency and denomination shown in the image. Prioritize any denomination "
+            "numeral or text printed directly on the note or coin itself over a general impression of "
+            "color or size -- read the actual printed amount rather than guessing from a glance. State "
+            "the amount plainly using the exact denomination printed on the note if you can read it. If "
+            "you cannot confidently read the printed denomination, or the note or coin is unclear or "
+            "partially visible, say so honestly rather than guessing a number.",
         ),
         color_instruction=os.getenv(
             "BE_MY_EYE_COLOR_INSTRUCTION_PROMPT",
