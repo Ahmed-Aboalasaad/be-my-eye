@@ -25,7 +25,6 @@ from app.providers.groq import (
     GroqGroundingProvider,
     GroqLLMProvider,
     GroqOCRProvider,
-    GroqTTSProvider,
     GroqVisionProvider,
 )
 from app.services.conversation_service import ConversationService
