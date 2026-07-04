@@ -18,9 +18,12 @@ class OpenFoodFactsProductLookupProvider(ProductLookupProvider):
         # ProductLookupRequest already restricts barcode to digits, but this
         # provider can be called directly (not only via the API layer), so
         # percent-encode here too rather than relying solely on the caller.
-        response = self._client.get(OPEN_FOOD_FACTS_URL.format(barcode=quote(barcode, safe="")))
-        response.raise_for_status()
-        data = response.json()
+        try:
+            response = self._client.get(OPEN_FOOD_FACTS_URL.format(barcode=quote(barcode, safe="")))
+            response.raise_for_status()
+            data = response.json()
+        except Exception:  # noqa: BLE001 -- Open Food Facts being down means "not found", not a 500
+            return None
 
         if data.get("status") != 1:
             return None

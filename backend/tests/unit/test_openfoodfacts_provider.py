@@ -45,3 +45,12 @@ def test_openfoodfacts_returns_none_when_not_found():
     result = provider.lookup_by_barcode("0000000000000")
 
     assert result is None
+
+
+def test_openfoodfacts_returns_none_on_server_error_instead_of_raising():
+    client = make_client({"error": "internal"}, status_code=503)
+    provider = OpenFoodFactsProductLookupProvider(client=client)
+
+    result = provider.lookup_by_barcode("6224000123456")
+
+    assert result is None
