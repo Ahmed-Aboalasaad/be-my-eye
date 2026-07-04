@@ -27,6 +27,8 @@ class IntentRouter:
         "menu",
         "page",
         "اقرأ",
+        "اقرالي",
+        "اقرا",
         "نص",
         "مستند",
         "لافتة",
@@ -54,6 +56,10 @@ class IntentRouter:
         "بكام",
         "كام سعر",
         "فئة",
+        "جنيه",
+        "قرش",
+        "الورقة دي كام",
+        "فكة",
     )
     COLOR_KEYWORDS = (
         "color",
@@ -62,6 +68,9 @@ class IntentRouter:
         "لون",
         "لونه",
         "درجة اللون",
+        "ايه اللون",
+        "لونها ايه",
+        "لون ايه",
     )
     PRODUCT_KEYWORDS = (
         "what am i holding",
@@ -74,6 +83,10 @@ class IntentRouter:
         "عبوة",
         "علبة",
         "منتج",
+        "ايه المنتج ده",
+        "دي علبة ايه",
+        "الماركة ايه",
+        "ممسك ايه",
     )
     FOOD_KEYWORDS = (
         "eating",
@@ -89,6 +102,9 @@ class IntentRouter:
         "طبق",
         "وجبة",
         "مكونات",
+        "دي اكلة ايه",
+        "الاكلة دي",
+        "ايه الاكل ده",
     )
     PEOPLE_KEYWORDS = (
         "anyone",
@@ -102,6 +118,10 @@ class IntentRouter:
         "ناس",
         "واقف قدامي",
         "بيبصلي",
+        "في حد قدامي",
+        "فيه حد",
+        "في ناس قدامي",
+        "حد واقف",
     )
     ENVIRONMENT_KEYWORDS = (
         "light on",
@@ -116,6 +136,10 @@ class IntentRouter:
         "مضي",
         "البوتاجاز",
         "الفرن مشغول",
+        "النور مفتوح",
+        "النور مقفول",
+        "الغاز مفتوح",
+        "البوتجاز شغال",
     )
     CLOTHING_KEYWORDS = (
         "clothes match",
@@ -127,6 +151,9 @@ class IntentRouter:
         "متناسقة",
         "بقعة",
         "لبس",
+        "شكل هدومي",
+        "الوان هدومي",
+        "فيه بقعة",
     )
     LABEL_KEYWORDS = (
         "expired",
@@ -139,6 +166,9 @@ class IntentRouter:
         "صلاحية",
         "دواء",
         "علاج",
+        "امتى تنتهي الصلاحية",
+        "الدوا ده",
+        "اسم الدوا",
     )
     GROUNDING_KEYWORDS = (
         "where",
@@ -152,6 +182,8 @@ class IntentRouter:
         "ابحث عن",
         "حدد موقع",
         "في اي اتجاه",
+        "هو فين",
+        "لاقيلي",
     )
 
     def route(self, user_message: str) -> RoutingDecision:
