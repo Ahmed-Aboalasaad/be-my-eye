@@ -95,6 +95,13 @@ class ConversationService:
         tts_fallback_required = False
         try:
             speech_bytes = self.tts.synthesize_speech(response_text)
+            if not speech_bytes:
+                # The provider returned successfully but produced no actual
+                # audio (e.g. a valid-but-empty file from the TTS service) --
+                # treat this the same as an outright failure so the client
+                # falls back to speaking the text locally instead of trying
+                # (and silently failing) to play empty audio.
+                raise TTSUnavailableError("TTS provider returned empty audio")
         except TTSUnavailableError:
             speech_bytes = b""
             tts_fallback_required = True

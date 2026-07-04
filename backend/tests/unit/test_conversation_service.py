@@ -270,6 +270,31 @@ def test_conversation_service_sets_fallback_flag_when_tts_unavailable():
 
     assert response.tts_fallback_required is True
     assert response.audio_base64 == ""
+
+
+def test_conversation_service_sets_fallback_flag_when_tts_returns_empty_audio():
+    from app.providers.fakes import FakeEmptyAudioTTSProvider
+
+    service = ConversationService(
+        asr=FakeASRProvider(),
+        vision=FakeVisionProvider(),
+        ocr=FakeOCRProvider(),
+        llm=FakeLLMProvider(),
+        tts=FakeEmptyAudioTTSProvider(),
+        grounding=FakeGroundingProvider(),
+        session_store=InMemorySessionStore(),
+        router=IntentRouter(),
+    )
+    request = ConversationRequest(
+        session_id="session-1",
+        image_base64=base64.b64encode(b"image-bytes").decode("ascii"),
+        audio_base64=base64.b64encode(b"What is in front of me?").decode("ascii"),
+    )
+
+    response = service.handle(request)
+
+    assert response.tts_fallback_required is True
+    assert response.audio_base64 == ""
     assert response.text  # the text answer must still be present
 
 

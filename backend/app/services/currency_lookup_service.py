@@ -60,6 +60,11 @@ class CurrencyLookupService:
         tts_fallback_required = False
         try:
             speech_bytes = self.tts.synthesize_speech(spoken_text)
+            if not speech_bytes:
+                # Successful call but no actual audio -- treat like a failure
+                # so the client falls back to speaking locally rather than
+                # silently failing to play empty audio.
+                raise TTSUnavailableError("TTS provider returned empty audio")
         except TTSUnavailableError:
             speech_bytes = b""
             tts_fallback_required = True

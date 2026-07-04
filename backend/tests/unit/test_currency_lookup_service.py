@@ -1,6 +1,7 @@
 from app.schemas.currency import CurrencyDetectionResult
 from app.providers.fakes import (
     FakeCurrencyDetectionProvider,
+    FakeEmptyAudioTTSProvider,
     FakeFailingTTSProvider,
     FakeTTSProvider,
     FakeVisionProvider,
@@ -84,3 +85,17 @@ def test_currency_lookup_sets_fallback_flag_when_tts_unavailable():
     assert response.tts_fallback_required is True
     assert response.audio_base64 == ""
     assert response.spoken_text  # text must still be present for the OS-voice fallback
+
+
+def test_currency_lookup_sets_fallback_flag_when_tts_returns_empty_audio():
+    service = CurrencyLookupService(
+        vision=FakeVisionProvider(),
+        tts=FakeEmptyAudioTTSProvider(),
+        currency_detector=FakeCurrencyDetectionProvider(),
+    )
+
+    response = service.handle(b"fake-image-bytes")
+
+    assert response.tts_fallback_required is True
+    assert response.audio_base64 == ""
+    assert response.spoken_text

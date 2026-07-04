@@ -67,6 +67,14 @@ class FakeFailingTTSProvider(TTSProvider):
         raise TTSUnavailableError("fake TTS failure for testing")
 
 
+class FakeEmptyAudioTTSProvider(TTSProvider):
+    """Simulates a provider that returns successfully but with no actual
+    audio -- distinct from FakeFailingTTSProvider, which raises."""
+
+    def synthesize_speech(self, text: str) -> bytes:
+        return b""
+
+
 class FakeProductLookupProvider(ProductLookupProvider):
     def lookup_by_barcode(self, barcode: str) -> ProductInfo | None:
         if barcode == "0000000000000":
