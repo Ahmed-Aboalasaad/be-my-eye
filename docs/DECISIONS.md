@@ -316,3 +316,48 @@ No free, reliable, real-time retail-price data source exists. Promising price lo
 without one would ship a feature that either silently returns nothing or requires a
 paid API this project doesn't have budget for. Better to scope the feature to what a
 free data source genuinely supports than to build a half-working promise.
+
+---
+
+## D-021: Multi-Turn Memory Uses Client-Supplied History, Not Server-Side Persistence
+
+**Decision**
+
+`ConversationResponse.transcript` is now always returned (not just under `debug: true`),
+and the mobile app accumulates `ConversationTurn`s locally and sends them as
+`request.history` with each `/conversation` call. No new backend storage (Redis,
+Postgres, etc.) was added; `InMemorySessionStore` remains, unused as a fallback for
+history when the client omits it.
+
+**Reason**
+
+`ConversationService.handle()` already preferred `request.history` over the server-side
+session store, but the mobile client never populated it, and the backend runs on
+Vercel's serverless functions where an in-process dict does not reliably survive across
+invocations/cold starts anyway. Threading history through the client closes the actual
+gap with zero new infrastructure, cost, or secrets — the alternative (an external
+session store) would have been a real infra decision needing the user's sign-off, which
+wasn't necessary once the simpler fix was visible.
+
+---
+
+## D-022: Roboflow Currency Model Confirmed Not to Detect Real Banknotes (This Version)
+
+**Finding**
+
+Tested `RoboflowCurrencyProvider` against 5 real reference banknote images (official
+Wikimedia Commons photos: the 10 EGP and 20 EGP polymer notes, the 100 EGP note, and an
+older 1-pound bill) at both default and `confidence=1` (near-zero threshold). Every
+request returned an empty `predictions` list. The Roboflow API integration itself is
+confirmed correct (200 OK, correct response shape, previously live-verified with a
+non-currency image) — this specific trained model (`egyptian-currency-psnkr` v1) simply
+does not recognize any tested real banknote.
+
+**Consequence**
+
+`RoboflowCurrencyProvider` currently defers to the VLM fallback for every real currency
+query in production. The D-017 hybrid architecture handles this gracefully (no user
+ever sees a broken response), but the "specialist tried first" path is not adding value
+with this specific model version right now. Swapping in a better-trained Roboflow
+model/dataset would restore the intended fast-path benefit. See the "Not Done Yet" list
+in `docs/ROADMAP.md`.
