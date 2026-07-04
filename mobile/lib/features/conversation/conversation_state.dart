@@ -108,6 +108,42 @@ class ConversationState extends ChangeNotifier {
     }
   }
 
+  Future<void> captureAndLookupCurrency() async {
+    _lastError = null;
+    _lastResponse = null;
+    notifyListeners();
+
+    final String imageBase64;
+    try {
+      imageBase64 = await _mediaCaptureService.captureImageBase64();
+    } catch (error) {
+      _lastError = 'Could not access the camera: $error';
+      notifyListeners();
+      return;
+    }
+
+    _isBusy = true;
+    notifyListeners();
+
+    try {
+      final result = await _backendClient.lookupCurrency(imageBase64);
+      _lastResponse = ConversationResponse(
+        sessionId: 'money-mode',
+        text: result.spokenText,
+        audioBase64: result.audioBase64,
+        ttsFallbackRequired: result.ttsFallbackRequired,
+      );
+      _lastError = null;
+    } catch (error) {
+      _lastError = error.toString();
+    } finally {
+      _isBusy = false;
+      notifyListeners();
+    }
+
+    await playLastResponse();
+  }
+
   Future<void> playLastResponse() async {
     final response = _lastResponse;
     if (response == null) {

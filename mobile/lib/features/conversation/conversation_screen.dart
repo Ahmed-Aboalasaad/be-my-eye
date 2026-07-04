@@ -109,6 +109,18 @@ class _ConversationScreenState extends State<ConversationScreen> with SingleTick
               alignment: Alignment.center,
               children: [
                 if (_isListening) ..._buildPulseRings(),
+                Positioned(
+                  top: 48,
+                  left: 24,
+                  child: Semantics(
+                    button: true,
+                    label: 'Money',
+                    child: IconButton(
+                      icon: const Icon(Icons.attach_money, color: _kAccent, size: 32),
+                      onPressed: () => context.read<ConversationState>().captureAndLookupCurrency(),
+                    ),
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.all(24),
                   child: Column(

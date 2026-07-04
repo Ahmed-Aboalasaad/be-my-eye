@@ -11,6 +11,8 @@ class FakeBackendClient extends BackendClient {
   FakeBackendClient() : super(baseUrl: 'http://localhost');
 
   ConversationRequest? lastRequest;
+  String? lastCurrencyImageBase64;
+  String? lastBarcode;
 
   @override
   Future<ConversationResponse> sendConversation(ConversationRequest request) async {
@@ -19,6 +21,34 @@ class FakeBackendClient extends BackendClient {
       sessionId: request.sessionId,
       text: 'assistant reply',
       audioBase64: 'response-audio',
+    );
+  }
+
+  @override
+  Future<CurrencyLookupResponse> lookupCurrency(String imageBase64) async {
+    lastCurrencyImageBase64 = imageBase64;
+    return CurrencyLookupResponse(
+      found: true,
+      denomination: '20 EGP',
+      confidence: 0.92,
+      spokenText: 'This looks like 20 EGP.',
+      audioBase64: 'currency-audio',
+    );
+  }
+
+  @override
+  Future<ProductLookupResponse> lookupProduct(String barcode) async {
+    lastBarcode = barcode;
+    if (barcode == '0000000000000') {
+      return ProductLookupResponse(found: false, product: null);
+    }
+    return ProductLookupResponse(
+      found: true,
+      product: ProductInfo(
+        name: 'Sample Product',
+        brand: 'Sample Brand',
+        allergens: const ['milk'],
+      ),
     );
   }
 }
@@ -252,5 +282,24 @@ void main() {
 
     expect(osTtsFallbackService.spokenText, 'the answer');
     expect(audioPlaybackService.playedAudioBase64, isNull);
+  });
+
+  test('ConversationState captures a photo and looks up currency', () async {
+    final backendClient = FakeBackendClient();
+    final mediaCaptureService = FakeMediaCaptureService();
+    final audioPlaybackService = FakeAudioPlaybackService();
+    final state = ConversationState(
+      backendClient: backendClient,
+      mediaCaptureService: mediaCaptureService,
+      audioPlaybackService: audioPlaybackService,
+      osTtsFallbackService: FakeOsTtsFallbackService(),
+    );
+
+    await state.captureAndLookupCurrency();
+
+    expect(mediaCaptureService.captureImageCalled, isTrue);
+    expect(backendClient.lastCurrencyImageBase64, 'captured-image');
+    expect(state.lastResponse?.text, 'This looks like 20 EGP.');
+    expect(audioPlaybackService.playedAudioBase64, 'currency-audio');
   });
 }
