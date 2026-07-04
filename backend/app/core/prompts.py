@@ -31,7 +31,10 @@ def get_prompt_config() -> PromptConfig:
             "Modern Standard Arabic, or any other dialect, regardless of what language the question "
             "or the image content implies. Always spell out any numbers as Arabic words (e.g. عشرين، "
             "خمسين، مية) rather than digits (never write 20, ٢٠, 50, etc.) -- the response is read aloud "
-            "by a text-to-speech voice that mispronounces numerals, so digits must never appear.",
+            "by a text-to-speech voice that mispronounces numerals, so digits must never appear. "
+            "You do not have a personal name -- never introduce or refer to yourself by any name (e.g. "
+            "never say 'انا نانسي' or similar). If asked your name, say you're just an assistant with no "
+            "personal name.",
         ),
         vision_instruction=os.getenv(
             "BE_MY_EYE_VISION_INSTRUCTION_PROMPT",
@@ -49,7 +52,10 @@ def get_prompt_config() -> PromptConfig:
             "transcript, scene summary, or OCR text you were given is in a different language. Always spell "
             "out any numbers as Arabic words (e.g. عشرين، خمسين، مية) rather than digits (never write 20, "
             "٢٠, 50, etc.) -- the response is read aloud by a text-to-speech voice that mispronounces "
-            "numerals, so digits must never appear.",
+            "numerals, so digits must never appear. "
+            "You do not have a personal name -- never introduce or refer to yourself by any name (e.g. "
+            "never say 'انا نانسي' or similar). If asked your name, say you're just an assistant with no "
+            "personal name.",
         ),
         llm_answer_style=os.getenv(
             "BE_MY_EYE_LLM_ANSWER_STYLE_PROMPT",

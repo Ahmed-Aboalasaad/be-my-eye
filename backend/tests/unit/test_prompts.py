@@ -46,6 +46,16 @@ def test_prompt_config_requires_spelled_out_numbers(monkeypatch):
     assert "printed" in prompts.currency_instruction.lower()
 
 
+def test_prompt_config_forbids_inventing_a_persona_name(monkeypatch):
+    monkeypatch.delenv("BE_MY_EYE_VISION_SYSTEM_PROMPT", raising=False)
+    monkeypatch.delenv("BE_MY_EYE_LLM_SYSTEM_PROMPT", raising=False)
+
+    prompts = get_prompt_config()
+
+    assert "does not have a personal name" in prompts.vision_system.lower() or "no personal name" in prompts.vision_system.lower()
+    assert "does not have a personal name" in prompts.llm_system.lower() or "no personal name" in prompts.llm_system.lower()
+
+
 def test_prompt_config_reads_overrides(monkeypatch):
     monkeypatch.setenv("BE_MY_EYE_VISION_SYSTEM_PROMPT", "vision override")
     monkeypatch.setenv("BE_MY_EYE_VISION_INSTRUCTION_PROMPT", "instruction override")
