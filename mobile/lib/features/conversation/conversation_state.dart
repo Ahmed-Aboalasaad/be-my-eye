@@ -158,7 +158,7 @@ class ConversationState extends ChangeNotifier {
 
     try {
       final result = await _backendClient.lookupProduct(barcode);
-      final text = result.found ? _describeProduct(result.product!) : "I couldn't find a product for this barcode.";
+      final text = result.found ? _describeProduct(result.product!) : "مقدرتش ألاقي منتج للباركود ده.";
       _lastResponse = ConversationResponse(
         sessionId: 'barcode-mode',
         text: text,
@@ -177,13 +177,13 @@ class ConversationState extends ChangeNotifier {
   }
 
   String _describeProduct(ProductInfo product) {
-    final buffer = StringBuffer('This is ${product.name}');
+    final buffer = StringBuffer('المنتج ده اسمه ${product.name}');
     if (product.brand != null) {
-      buffer.write(' by ${product.brand}');
+      buffer.write(' من ${product.brand}');
     }
     buffer.write('.');
     if (product.allergens.isNotEmpty) {
-      buffer.write(' Contains: ${product.allergens.join(', ')}.');
+      buffer.write(' وبيحتوي على: ${product.allergens.join(', ')}.');
     }
     return buffer.toString();
   }

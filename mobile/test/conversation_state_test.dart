@@ -380,6 +380,6 @@ void main() {
 
     await state.lookupProductByBarcode('0000000000000');
 
-    expect(state.lastResponse?.text, contains("couldn't find"));
+    expect(state.lastResponse?.text, contains('مقدرتش ألاقي'));
   });
 }
