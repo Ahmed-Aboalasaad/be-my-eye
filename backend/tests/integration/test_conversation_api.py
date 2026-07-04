@@ -5,7 +5,16 @@ from fastapi.testclient import TestClient
 from app.main import create_app
 
 
-def make_client() -> TestClient:
+def make_client(api_key: str | None = None) -> TestClient:
+    import os
+
+    # Explicit about BE_MY_EYE_API_KEY rather than relying on ambient state:
+    # a real key can exist in a developer's local .env, which would silently
+    # 401 every test below that doesn't expect auth to be required.
+    if api_key is not None:
+        os.environ["BE_MY_EYE_API_KEY"] = api_key
+    else:
+        os.environ.pop("BE_MY_EYE_API_KEY", None)
     return TestClient(create_app())
 
 
@@ -73,31 +82,33 @@ def test_conversation_endpoint_rejects_invalid_base64():
     assert response.json()["detail"]["code"] == "invalid_request"
 
 
-def test_conversation_endpoint_rejects_missing_api_key_when_configured(monkeypatch):
-    monkeypatch.setenv("USE_REAL_PROVIDERS", "false")
-    monkeypatch.setenv("BE_MY_EYE_API_KEY", "test-secret-key")
+def test_conversation_endpoint_rejects_missing_api_key_when_configured():
+    import os
+
+    os.environ["USE_REAL_PROVIDERS"] = "false"
     payload = {
         "session_id": "session-1",
         "image_base64": base64.b64encode(b"image-bytes").decode("ascii"),
         "audio_base64": base64.b64encode(b"What is in front of me?").decode("ascii"),
     }
 
-    response = make_client().post("/conversation", json=payload)
+    response = make_client(api_key="test-secret-key").post("/conversation", json=payload)
 
     assert response.status_code == 401
     assert response.json()["detail"]["code"] == "unauthorized"
 
 
-def test_conversation_endpoint_allows_correct_api_key_when_configured(monkeypatch):
-    monkeypatch.setenv("USE_REAL_PROVIDERS", "false")
-    monkeypatch.setenv("BE_MY_EYE_API_KEY", "test-secret-key")
+def test_conversation_endpoint_allows_correct_api_key_when_configured():
+    import os
+
+    os.environ["USE_REAL_PROVIDERS"] = "false"
     payload = {
         "session_id": "session-1",
         "image_base64": base64.b64encode(b"image-bytes").decode("ascii"),
         "audio_base64": base64.b64encode(b"What is in front of me?").decode("ascii"),
     }
 
-    response = make_client().post(
+    response = make_client(api_key="test-secret-key").post(
         "/conversation", json=payload, headers={"X-API-Key": "test-secret-key"}
     )
 
