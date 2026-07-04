@@ -52,8 +52,8 @@ This is an active proof-of-concept. Be honest with yourself about what's real be
 | Component | Status |
 | --- | --- |
 | Backend (FastAPI) | **Working, tested, deployed** — live on Vercel with real Groq providers |
-| Backend test suite | **Green** — 110 passed, 1 skipped (real-mode smoke test is env-gated) |
-| Mobile app (Flutter) | **Working** — full app implemented (capture, playback, conversation state, Money Mode, barcode scanning, Stitch-designed hold-to-ask screen), 28/28 tests passing, `flutter analyze` clean |
+| Backend test suite | **Green** — 119 passed, 1 skipped (real-mode smoke test is env-gated) |
+| Mobile app (Flutter) | **Working** — full app implemented (capture, playback, conversation state with multi-turn history, Money Mode, barcode scanning, Stitch-designed hold-to-ask screen), 33/33 tests passing, `flutter analyze` clean |
 | Vision-task routing + grounding | **Working** — scene/currency/color/product/food/people/environment/clothing/label routing and object-finder grounding, with Arabic keyword support (this app's ASR defaults to Arabic), verified live end-to-end |
 | `/conversation` end-to-end | **Fully verified live** — ASR → routing → Vision/OCR/Grounding → LLM → TTS all confirmed working against real Groq APIs |
 | Egyptian currency detection | **Working, live-verified** — `RoboflowCurrencyProvider` confirmed against the real hosted API with a live `ROBOFLOW_API_KEY`; falls back to the general VLM if the key is ever removed (see [Environment Variables](#environment-variables)) |
@@ -102,7 +102,7 @@ See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full phased plan and [`docs/sup
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Ahmed-Aboalasaad/be-my-eye.git
+git clone https://github.com/ahmednashatnoaman-svg/be-my-eye.git
 cd be-my-eye
 ```
 
@@ -149,7 +149,7 @@ curl http://localhost:8000/health
 
 ### 5. Try the Conversation Endpoint
 
-The backend exposes a single endpoint, `POST /conversation`, which accepts a base64-encoded image, base64-encoded audio, and a session ID, and returns a spoken response (also base64-encoded). See [`docs/API_SPEC.md`](docs/API_SPEC.md) for the full contract.
+The backend's primary endpoint is `POST /conversation`, which accepts a base64-encoded image, base64-encoded audio, and a session ID, and returns a spoken response (also base64-encoded). `POST /currency-lookup` and `POST /product-lookup` are dedicated fast paths for Money Mode and barcode scanning, respectively. See [`docs/API_SPEC.md`](docs/API_SPEC.md) for the full contract of all endpoints.
 
 ```bash
 python3 -c "
@@ -260,7 +260,7 @@ be-my-eye/
 │   │       ├── barcode_scanner_screen.dart    # Camera-based barcode scan screen
 │   │       ├── models.dart                    # Request/response models
 │   │       └── demo_capture.dart              # Hardcoded demo image/audio for quick manual testing
-│   ├── test/                          # 28 tests covering state, models, capture, and the screen's semantics
+│   ├── test/                          # 33 tests covering state, models, capture, and the screen's semantics
 │   └── pubspec.yaml                   # camera, mobile_scanner, record, just_audio, flutter_tts, http, provider, permission_handler, image, google_fonts
 ├── docs/                              # Vision, requirements, architecture, decisions, roadmap
 │   └── superpowers/                   # Design specs and implementation plans for this effort
@@ -358,7 +358,7 @@ cd backend
 python3 -m pytest -v
 ```
 
-Expected output: **110 passed, 1 skipped**. The one skip is `tests/integration/test_real_mode_smoke.py`, which only runs when `RUN_REAL_GROQ_SMOKE_TESTS=true` and a real `GROQ_MULTIMODAL_MODEL` are set — it makes real Groq API calls and isn't part of the default fast, deterministic suite.
+Expected output: **119 passed, 1 skipped**. The one skip is `tests/integration/test_real_mode_smoke.py`, which only runs when `RUN_REAL_GROQ_SMOKE_TESTS=true` and a real `GROQ_MULTIMODAL_MODEL` are set — it makes real Groq API calls and isn't part of the default fast, deterministic suite.
 
 ### Test Structure
 
@@ -398,11 +398,11 @@ from app.services.intent_router import IntentRouter
 
 def test_intent_router_adds_ocr_for_text_requests():
     router = IntentRouter()
-    result = router.select_providers("Can you read this receipt for me?")
-    assert "ocr" in result
+    decision = router.route("Can you read this receipt for me?")
+    assert decision.use_ocr is True
 ```
 
-Mobile tests run via `flutter test` from `mobile/` (28 tests, all passing) and cover `ConversationState` (including Money Mode, barcode lookup, and the on-device TTS fallback), `BackendClient`, `MediaCaptureService`, `AudioPlaybackService`, response models, and the conversation screen's semantics, using fake implementations of each service. `flutter analyze` is clean with no issues.
+Mobile tests run via `flutter test` from `mobile/` (33 tests, all passing) and cover `ConversationState` (including Money Mode, barcode lookup, multi-turn history, and the on-device TTS fallback), `BackendClient`, `MediaCaptureService`, `AudioPlaybackService`, response models, and the conversation screen's semantics, using fake implementations of each service. `flutter analyze` is clean with no issues.
 
 ## Deployment
 
