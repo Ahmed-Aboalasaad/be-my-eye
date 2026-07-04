@@ -52,7 +52,7 @@ class CurrencyLookupService:
             confidence = None
             spoken_text = self.vision.analyze(
                 image_bytes,
-                "What Egyptian currency denomination is shown in this image?",
+                "What Egyptian currency denomination is shown in this image? Reply strictly in Egyptian Arabic (e.g. 'خمسين جنيه'). Do not use English.",
                 [],
                 task=VisionTask.currency,
             )
