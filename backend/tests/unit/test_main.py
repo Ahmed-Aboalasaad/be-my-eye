@@ -25,7 +25,10 @@ def test_create_app_wires_grounding_provider_in_fake_mode(monkeypatch):
 def test_create_app_registers_product_lookup_route():
     app = create_app()
 
-    paths = {route.path for route in app.routes}
+    # Newer Starlette versions include some entries in app.routes (e.g. a
+    # mounted/included router as a whole) that don't expose `.path` directly
+    # -- only individual APIRoute-like entries do. Filter to those.
+    paths = {route.path for route in app.routes if hasattr(route, "path")}
     assert "/product-lookup" in paths
 
 
@@ -59,5 +62,5 @@ def test_create_app_wires_currency_detector_only_when_roboflow_key_present(monke
 def test_create_app_registers_currency_lookup_route():
     app = create_app()
 
-    paths = {route.path for route in app.routes}
+    paths = {route.path for route in app.routes if hasattr(route, "path")}
     assert "/currency-lookup" in paths
