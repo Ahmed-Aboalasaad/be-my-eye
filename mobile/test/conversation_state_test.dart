@@ -302,4 +302,35 @@ void main() {
     expect(state.lastResponse?.text, 'This looks like 20 EGP.');
     expect(audioPlaybackService.playedAudioBase64, 'currency-audio');
   });
+
+  test('ConversationState looks up a product by barcode and describes it', () async {
+    final backendClient = FakeBackendClient();
+    final state = ConversationState(
+      backendClient: backendClient,
+      mediaCaptureService: FakeMediaCaptureService(),
+      audioPlaybackService: FakeAudioPlaybackService(),
+      osTtsFallbackService: FakeOsTtsFallbackService(),
+    );
+
+    await state.lookupProductByBarcode('1234567890123');
+
+    expect(backendClient.lastBarcode, '1234567890123');
+    expect(state.lastResponse?.text, contains('Sample Product'));
+    expect(state.lastResponse?.text, contains('milk'));
+    expect(state.lastResponse?.ttsFallbackRequired, isTrue);
+  });
+
+  test('ConversationState reports when a barcode is not found', () async {
+    final backendClient = FakeBackendClient();
+    final state = ConversationState(
+      backendClient: backendClient,
+      mediaCaptureService: FakeMediaCaptureService(),
+      audioPlaybackService: FakeAudioPlaybackService(),
+      osTtsFallbackService: FakeOsTtsFallbackService(),
+    );
+
+    await state.lookupProductByBarcode('0000000000000');
+
+    expect(state.lastResponse?.text, contains("couldn't find"));
+  });
 }

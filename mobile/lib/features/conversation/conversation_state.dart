@@ -144,6 +144,44 @@ class ConversationState extends ChangeNotifier {
     await playLastResponse();
   }
 
+  Future<void> lookupProductByBarcode(String barcode) async {
+    _lastError = null;
+    _lastResponse = null;
+    _isBusy = true;
+    notifyListeners();
+
+    try {
+      final result = await _backendClient.lookupProduct(barcode);
+      final text = result.found ? _describeProduct(result.product!) : "I couldn't find a product for this barcode.";
+      _lastResponse = ConversationResponse(
+        sessionId: 'barcode-mode',
+        text: text,
+        audioBase64: '',
+        ttsFallbackRequired: true,
+      );
+      _lastError = null;
+    } catch (error) {
+      _lastError = error.toString();
+    } finally {
+      _isBusy = false;
+      notifyListeners();
+    }
+
+    await playLastResponse();
+  }
+
+  String _describeProduct(ProductInfo product) {
+    final buffer = StringBuffer('This is ${product.name}');
+    if (product.brand != null) {
+      buffer.write(' by ${product.brand}');
+    }
+    buffer.write('.');
+    if (product.allergens.isNotEmpty) {
+      buffer.write(' Contains: ${product.allergens.join(', ')}.');
+    }
+    return buffer.toString();
+  }
+
   Future<void> playLastResponse() async {
     final response = _lastResponse;
     if (response == null) {

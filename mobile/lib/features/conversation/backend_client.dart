@@ -57,4 +57,23 @@ class BackendClient {
       jsonDecode(response.body) as Map<String, dynamic>,
     );
   }
+
+  Future<ProductLookupResponse> lookupProduct(String barcode) async {
+    final uri = Uri.parse('$baseUrl/product-lookup');
+    final response = await _httpClient.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'barcode': barcode}),
+    );
+
+    if (response.statusCode != 200) {
+      throw BackendException(
+        'Backend returned ${response.statusCode}: ${response.body}',
+      );
+    }
+
+    return ProductLookupResponse.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
 }
