@@ -28,10 +28,10 @@ class JustAudioPlaybackService implements AudioPlaybackService {
     );
     await file.writeAsBytes(bytes);
     await _player.setFilePath(file.path);
-    // Slightly slower than natural playback speed so the (already fast)
+    // Slower than natural playback speed so the (already fast)
     // cloud-synthesized voice is easier to follow -- reported feedback that
     // responses sounded rushed.
-    await _player.setSpeed(0.9);
+    await _player.setSpeed(0.85);
     await _player.play();
   }
 

@@ -15,7 +15,7 @@ class FlutterOsTtsFallbackService implements OsTtsFallbackService {
     _tts.setLanguage('ar-EG');
     // Slower than the platform default (~0.5 on iOS) so the fallback voice
     // is easier to follow, matching the slowed-down cloud voice speed.
-    _tts.setSpeechRate(0.42);
+    _tts.setSpeechRate(0.38);
   }
 
   final FlutterTts _tts;
