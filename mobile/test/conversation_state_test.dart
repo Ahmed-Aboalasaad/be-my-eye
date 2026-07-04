@@ -62,6 +62,7 @@ class FakeMediaCaptureService implements MediaCaptureService {
   bool captureImageCalled = false;
   bool startAudioRecordingCalled = false;
   bool stopAudioRecordingCalled = false;
+  bool disposeCameraCalled = false;
 
   @override
   Future<String> captureImageBase64() async {
@@ -85,6 +86,11 @@ class FakeMediaCaptureService implements MediaCaptureService {
 
   @override
   Future<void> ensureCameraReady() async {}
+
+  @override
+  Future<void> disposeCamera() async {
+    disposeCameraCalled = true;
+  }
 }
 
 class FakeAudioPlaybackService implements AudioPlaybackService {
@@ -131,6 +137,9 @@ class ThrowingMediaCaptureService implements MediaCaptureService {
 
   @override
   Future<void> ensureCameraReady() async {}
+
+  @override
+  Future<void> disposeCamera() async {}
 }
 
 class CameraFailsButMicWorksMediaCaptureService implements MediaCaptureService {
@@ -152,6 +161,9 @@ class CameraFailsButMicWorksMediaCaptureService implements MediaCaptureService {
 
   @override
   Future<void> ensureCameraReady() async {}
+
+  @override
+  Future<void> disposeCamera() async {}
 }
 
 class ThrowingBackendClient extends BackendClient {
@@ -490,5 +502,19 @@ void main() {
     await state.lookupProductByBarcode('0000000000000');
 
     expect(state.lastResponse?.text, contains('مقدرتش ألاقي'));
+  });
+
+  test('disposing ConversationState releases the camera', () {
+    final mediaCaptureService = FakeMediaCaptureService();
+    final state = ConversationState(
+      backendClient: FakeBackendClient(),
+      mediaCaptureService: mediaCaptureService,
+      audioPlaybackService: FakeAudioPlaybackService(),
+      osTtsFallbackService: FakeOsTtsFallbackService(),
+    );
+
+    state.dispose();
+
+    expect(mediaCaptureService.disposeCameraCalled, isTrue);
   });
 }

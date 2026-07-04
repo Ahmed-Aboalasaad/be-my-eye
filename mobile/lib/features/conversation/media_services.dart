@@ -19,6 +19,12 @@ abstract class MediaCaptureService {
   /// Warms up the camera ahead of the first capture so a live preview can
   /// be shown immediately. Fakes without a real camera should no-op.
   Future<void> ensureCameraReady();
+
+  /// Releases the camera hardware. Must be called when the capture service
+  /// is no longer needed (app teardown) so the camera isn't left locked,
+  /// draining battery and blocking other apps from using it. Fakes without
+  /// a real camera should no-op.
+  Future<void> disposeCamera();
 }
 
 /// Resizes [rawBytes] so its longest edge is at most [maxDimension], then
@@ -73,6 +79,13 @@ class CameraMediaCaptureService implements MediaCaptureService {
   @override
   Future<void> ensureCameraReady() async {
     await _ensureCamera();
+  }
+
+  @override
+  Future<void> disposeCamera() async {
+    final controller = _cameraController;
+    _cameraController = null;
+    await controller?.dispose();
   }
 
   @override

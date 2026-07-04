@@ -21,13 +21,15 @@ class ConversationScreen extends StatefulWidget {
   State<ConversationScreen> createState() => _ConversationScreenState();
 }
 
-class _ConversationScreenState extends State<ConversationScreen> with SingleTickerProviderStateMixin {
+class _ConversationScreenState extends State<ConversationScreen>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _pulseController;
   bool _isListening = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -42,7 +44,21 @@ class _ConversationScreenState extends State<ConversationScreen> with SingleTick
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final conversationState = context.read<ConversationState>();
+    // Release the camera while backgrounded so it doesn't stay locked (and
+    // draining battery / blocking other apps from using it), then reacquire
+    // it when the app comes back to the foreground.
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      conversationState.disposeCameraPreview();
+    } else if (state == AppLifecycleState.resumed) {
+      conversationState.initializeCameraPreview().catchError((_) {});
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pulseController.dispose();
     super.dispose();
   }

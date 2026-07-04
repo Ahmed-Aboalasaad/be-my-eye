@@ -31,6 +31,9 @@ class _FakeMediaCaptureService implements MediaCaptureService {
   CameraController? get cameraController => null;
   @override
   Future<void> ensureCameraReady() async {}
+
+  @override
+  Future<void> disposeCamera() async {}
 }
 
 class _FakeAudioPlaybackService implements AudioPlaybackService {

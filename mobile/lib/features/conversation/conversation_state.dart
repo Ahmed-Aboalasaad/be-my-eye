@@ -53,6 +53,14 @@ class ConversationState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Releases the camera while the app is backgrounded so it doesn't sit
+  /// locked (draining battery, blocking other apps) until the app is fully
+  /// terminated. Call [initializeCameraPreview] again on resume.
+  Future<void> disposeCameraPreview() async {
+    await _mediaCaptureService.disposeCamera();
+    notifyListeners();
+  }
+
   /// Always the first call of a new hold-to-ask gesture, so this is where
   /// the previous turn's error and answer get cleared for the new attempt.
   /// The later steps in the same gesture must not clobber an error this
@@ -269,5 +277,15 @@ class ConversationState extends ChangeNotifier {
       ttsFallbackRequired: ttsFallbackRequired,
     );
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    // ChangeNotifier.dispose() is synchronous, so this is fire-and-forget --
+    // the camera hardware still gets released, just not necessarily before
+    // this call returns. Without this, the camera controller added for the
+    // live preview background was never released at all.
+    _mediaCaptureService.disposeCamera();
+    super.dispose();
   }
 }
