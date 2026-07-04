@@ -1,3 +1,4 @@
+from app.schemas.currency import CurrencyDetectionResult
 from app.providers.fakes import (
     FakeCurrencyDetectionProvider,
     FakeFailingTTSProvider,
@@ -18,8 +19,43 @@ def test_currency_lookup_uses_specialist_when_confident():
 
     assert response.found is True
     assert response.denomination == "20 EGP"
-    assert "20 EGP" in response.spoken_text
+    assert response.spoken_text == "دي عشرين جنيه."
     assert response.audio_base64 != ""
+
+
+def test_currency_lookup_speaks_hedged_arabic_for_unrecognized_denomination():
+    class UnrecognizedDenominationProvider:
+        def detect_currency(self, image_bytes: bytes):
+            return CurrencyDetectionResult(denomination="999_egp", confidence=0.95)
+
+    service = CurrencyLookupService(
+        vision=FakeVisionProvider(),
+        tts=FakeTTSProvider(),
+        currency_detector=UnrecognizedDenominationProvider(),
+    )
+
+    response = service.handle(b"fake-image-bytes")
+
+    assert response.found is True
+    assert "999" not in response.spoken_text
+    assert response.spoken_text  # hedged Arabic message, not a raw label
+
+
+def test_currency_lookup_falls_back_to_vlm_when_detector_unconfident():
+    class LowConfidenceCurrencyDetector:
+        def detect_currency(self, image_bytes: bytes):
+            return CurrencyDetectionResult(denomination="20 EGP", confidence=0.2)
+
+    service = CurrencyLookupService(
+        vision=FakeVisionProvider(),
+        tts=FakeTTSProvider(),
+        currency_detector=LowConfidenceCurrencyDetector(),
+    )
+
+    response = service.handle(b"fake-image-bytes")
+
+    assert response.found is False
+    assert response.denomination is None
 
 
 def test_currency_lookup_falls_back_to_vlm_without_detector():
