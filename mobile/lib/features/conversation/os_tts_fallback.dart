@@ -9,7 +9,10 @@ abstract class OsTtsFallbackService {
 
 class FlutterOsTtsFallbackService implements OsTtsFallbackService {
   FlutterOsTtsFallbackService({FlutterTts? tts}) : _tts = tts ?? FlutterTts() {
-    _tts.setLanguage('ar');
+    // 'ar-EG' requests the Egyptian locale specifically rather than a
+    // generic/MSA Arabic voice, so the fallback voice doesn't sound like an
+    // abrupt switch away from the cloud Egyptian TTS voice.
+    _tts.setLanguage('ar-EG');
   }
 
   final FlutterTts _tts;
