@@ -10,7 +10,28 @@ def test_prompt_config_uses_defaults(monkeypatch):
 
     assert "accessibility assistant" in prompts.vision_system.lower()
     assert "extract the visible text" in prompts.ocr_system.lower()
-    assert "answer concisely" in prompts.llm_system.lower()
+    assert "conversation history" in prompts.llm_system.lower()
+
+
+def test_prompt_config_forces_egyptian_arabic_only(monkeypatch):
+    monkeypatch.delenv("BE_MY_EYE_VISION_SYSTEM_PROMPT", raising=False)
+    monkeypatch.delenv("BE_MY_EYE_LLM_SYSTEM_PROMPT", raising=False)
+
+    prompts = get_prompt_config()
+
+    assert "egyptian arabic" in prompts.vision_system.lower()
+    assert "egyptian arabic" in prompts.llm_system.lower()
+    assert "never in english" in prompts.vision_system.lower()
+    assert "never in english" in prompts.llm_system.lower()
+
+
+def test_prompt_config_answer_style_allows_multi_sentence_responses(monkeypatch):
+    monkeypatch.delenv("BE_MY_EYE_LLM_ANSWER_STYLE_PROMPT", raising=False)
+
+    prompts = get_prompt_config()
+
+    assert "one short" not in prompts.llm_answer_style.lower()
+    assert "2 to 4 sentences" in prompts.llm_answer_style.lower()
 
 
 def test_prompt_config_reads_overrides(monkeypatch):
